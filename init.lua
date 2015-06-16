@@ -215,7 +215,7 @@ minetest.register_abm({
 		--local a = minetest.get_node({x=pos.x, y=pos.y+1, z=pos.z}).name
 		--local b = minetest.get_node({x=pos.x, y=pos.y-1, z=pos.z}).name
 
-		-- input
+		-- input (from above)
 
 		if a == "default:chest"
 		or a == "default:chest_locked"
@@ -233,7 +233,7 @@ minetest.register_abm({
 
 		end
 
-		-- output
+		-- output (to below)
 
 		if b == "default:chest"
 		or b == "default:chest_locked"
@@ -290,7 +290,7 @@ minetest.register_abm({
 --		local a = minetest.get_node({x=pos.x, y=pos.y+1, z=pos.z}).name
 --		local b = minetest.get_node(front).name
 
-		-- input
+		-- input (from above)
 
 		if a == "default:chest"
 		or a == "default:chest_locked"
@@ -308,11 +308,13 @@ minetest.register_abm({
 
 		end
 
-		-- output
+		-- output (to side)
 
 		if b == "default:chest"
 		or b == "default:chest_locked"
-		or b == "protector:chest" then
+		or b == "protector:chest"
+		or b == "hopper:hopper"
+		or b == "hopper:hopper_side" then
 
 			-- hopper to chest beside
 			transfer("main", pos, "main", front)
