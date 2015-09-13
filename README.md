@@ -13,3 +13,5 @@ Released under WTFPL
 0.3 - transfer function added
 
 0.4 - Supports locked chest and protected chest
+
+0.5 - Works with 0.4.13's new shift+click for newly placed Hoppers
