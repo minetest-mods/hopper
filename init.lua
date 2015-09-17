@@ -1,18 +1,7 @@
-local hopper_formspec =
-	"size[8,9]"
-	.. default.gui_bg
-	.. default.gui_bg_img
-	.. default.gui_slots
-	.. "list[current_name;main;0,0.3;8,4;]"
-	.. "list[current_player;main;0,4.85;8,1;]"
-	.. "list[current_player;main;0,6.08;8,3;8]"
-	.. "listring[current_name;main]"
-	.. "listring[current_player;main]"
-
 -- hopper
 minetest.register_node("hopper:hopper", {
 	description = "Hopper",
-	groups = {cracky=1,level=2},
+	groups = {cracky = 1, level = 2},
 	drawtype = "nodebox",
 	paramtype = "light",
 	tiles = {"default_coal_block.png"},
@@ -34,38 +23,56 @@ minetest.register_node("hopper:hopper", {
 
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
-		meta:set_string("formspec", hopper_formspec)
 		meta:set_string("infotext", "Hopper")
 		local inv = meta:get_inventory()
 		inv:set_size("main", 8*4)
 	end,
 
-	can_dig = function(pos,player)
+	can_dig = function(pos, player)
 		local meta = minetest.get_meta(pos)
 		local inv = meta:get_inventory()
 		return inv:is_empty("main")
 	end,
 
+	on_rightclick = function(pos, node, clicker, itemstack)
+		local meta = minetest.get_meta(pos)
+		local spos = pos.x .. "," .. pos.y .. "," ..pos.z
+		local formspec =
+			"size[8,9]"
+			.. default.gui_bg
+			.. default.gui_bg_img
+			.. default.gui_slots
+			.. "list[nodemeta:"..spos..";main;0,0.3;8,4;]"
+			.. "list[current_player;main;0,4.85;8,1;]"
+			.. "list[current_player;main;0,6.08;8,3;8]"
+			.. "listring[nodemeta:"..spos..";main]"
+			.. "listring[current_player;main]"
+		minetest.show_formspec(clicker:get_player_name(), "", formspec)
+	end,
+
 	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
-		minetest.log("action", player:get_player_name()..
-				" moves stuff in hopper at "..minetest.pos_to_string(pos))
+		minetest.log("action", player:get_player_name()
+			.." moves stuff in hopper at "
+			..minetest.pos_to_string(pos))
 	end,
 
-    on_metadata_inventory_put = function(pos, listname, index, stack, player)
-		minetest.log("action", player:get_player_name()..
-				" moves stuff to hopper at "..minetest.pos_to_string(pos))
+	on_metadata_inventory_put = function(pos, listname, index, stack, player)
+		minetest.log("action", player:get_player_name()
+			.." moves stuff to hopper at "
+			..minetest.pos_to_string(pos))
 	end,
 
-    on_metadata_inventory_take = function(pos, listname, index, stack, player)
-		minetest.log("action", player:get_player_name()..
-				" takes stuff from hopper at "..minetest.pos_to_string(pos))
+	on_metadata_inventory_take = function(pos, listname, index, stack, player)
+		minetest.log("action", player:get_player_name()
+			.." takes stuff from hopper at "
+			..minetest.pos_to_string(pos))
 	end,
 })
 
 -- hopper side
 minetest.register_node("hopper:hopper_side", {
 	description = "Side Hopper",
-	groups = {cracky=1,level=2},
+	groups = {cracky = 1, level = 2},
 	drawtype = "nodebox",
 	paramtype = "light",
 	paramtype2 = "facedir",
@@ -88,37 +95,56 @@ minetest.register_node("hopper:hopper_side", {
 
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
-		meta:set_string("formspec", hopper_formspec)
+		--meta:set_string("formspec", hopper_formspec)
 		meta:set_string("infotext", "Side Hopper")
 		local inv = meta:get_inventory()
 		inv:set_size("main", 8*4)
 	end,
 
-	can_dig = function(pos,player)
+	can_dig = function(pos, player)
 		local meta = minetest.get_meta(pos)
 		local inv = meta:get_inventory()
 		return inv:is_empty("main")
 	end,
 
+	on_rightclick = function(pos, node, clicker, itemstack)
+		local meta = minetest.get_meta(pos)
+		local spos = pos.x .. "," .. pos.y .. "," ..pos.z
+		local formspec =
+			"size[8,9]"
+			.. default.gui_bg
+			.. default.gui_bg_img
+			.. default.gui_slots
+			.. "list[nodemeta:"..spos..";main;0,0.3;8,4;]"
+			.. "list[current_player;main;0,4.85;8,1;]"
+			.. "list[current_player;main;0,6.08;8,3;8]"
+			.. "listring[nodemeta:"..spos..";main]"
+			.. "listring[current_player;main]"
+		minetest.show_formspec(clicker:get_player_name(), "", formspec)
+	end,
+
 	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
-		minetest.log("action", player:get_player_name()..
-				" moves stuff in hopper at "..minetest.pos_to_string(pos))
+		minetest.log("action", player:get_player_name()
+			.." moves stuff in hopper at "
+			..minetest.pos_to_string(pos))
 	end,
 
-    on_metadata_inventory_put = function(pos, listname, index, stack, player)
-		minetest.log("action", player:get_player_name()..
-				" moves stuff to hopper at "..minetest.pos_to_string(pos))
+	on_metadata_inventory_put = function(pos, listname, index, stack, player)
+		minetest.log("action", player:get_player_name()
+			.." moves stuff to hopper at "
+			..minetest.pos_to_string(pos))
 	end,
 
-    on_metadata_inventory_take = function(pos, listname, index, stack, player)
-		minetest.log("action", player:get_player_name()..
-				" takes stuff from hopper at "..minetest.pos_to_string(pos))
+	on_metadata_inventory_take = function(pos, listname, index, stack, player)
+		minetest.log("action", player:get_player_name()
+			.." takes stuff from hopper at "
+			..minetest.pos_to_string(pos))
 	end,
 })
 
 -- suck in items on top of hopper
 minetest.register_abm({
-	nodenames = {"hopper:hopper","hopper:hopper_side"},
+	nodenames = {"hopper:hopper", "hopper:hopper_side"},
 	interval = 1.0,
 	chance = 1,
 	action = function(pos, node, active_object_count, active_object_count_wider)
@@ -127,10 +153,14 @@ minetest.register_abm({
 		local posob
 
 		for _,object in ipairs(minetest.get_objects_inside_radius(pos, 1)) do
-			if not object:is_player() and object:get_luaentity() and object:get_luaentity().name == "__builtin:item" then
+			if not object:is_player()
+			and object:get_luaentity()
+			and object:get_luaentity().name == "__builtin:item" then
 				if inv and inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
 					posob = object:getpos()
-					if math.abs(posob.x-pos.x) <= 0.5 and (posob.y-pos.y <= 0.85 and posob.y-pos.y >= 0.3) then
+					if math.abs(posob.x - pos.x) <= 0.5
+					and posob.y - pos.y <= 0.85
+					and posob.y - pos.y >= 0.3 then
 						inv:add_item("main", ItemStack(object:get_luaentity().itemstring))
 						object:get_luaentity().itemstring = ""
 						object:remove()
@@ -162,7 +192,7 @@ local transfer = function(src, srcpos, dst, dstpos)
 	local stack, item
 
 	-- transfer item
-	for i = 1,invsize do
+	for i = 1, invsize do
 
 		stack = inv:get_stack(src, i)
 		item = stack:get_name()
@@ -197,24 +227,25 @@ end
 minetest.register_abm({
 	nodenames = {"hopper:hopper"},
 	neighbors = {
-		"default:chest","default:chest_locked","protector:chest",
-		"hopper:hopper","hopper:hopper_side","default:furnace","default:furnace_active"
+		"default:chest", "default:chest_locked", "protector:chest",
+		"hopper:hopper", "hopper:hopper_side", "default:furnace",
+		"default:furnace_active"
 	},
 	interval = 1.0,
 	chance = 1,
 	action = function(pos, node, active_object_count, active_object_count_wider)
 
-		local min = {x=pos.x,y=pos.y-1,z=pos.z}
-		local max = {x=pos.x,y=pos.y+1,z=pos.z}
-		local vm = minetest.get_voxel_manip()	
-		local emin, emax = vm:read_from_map(min,max)
-		local area = VoxelArea:new{MinEdge=emin, MaxEdge=emax}
-		local data = vm:get_data()	
-		local a = vm:get_node_at({x=pos.x,y=pos.y+1,z=pos.z}).name
-		local b = vm:get_node_at({x=pos.x,y=pos.y-1,z=pos.z}).name
+		local min = {x = pos.x, y = pos.y - 1, z = pos.z}
+		local max = {x = pos.x, y = pos.y + 1, z = pos.z}
+		local vm = minetest.get_voxel_manip()
+		local emin, emax = vm:read_from_map(min, max)
+		local area = VoxelArea:new{MinEdge = emin, MaxEdge = emax}
+		local data = vm:get_data()
+		local a = vm:get_node_at({x = pos.x, y = pos.y + 1, z = pos.z}).name
+		local b = vm:get_node_at({x = pos.x, y = pos.y - 1, z = pos.z}).name
 
-		--local a = minetest.get_node({x=pos.x, y=pos.y+1, z=pos.z}).name
-		--local b = minetest.get_node({x=pos.x, y=pos.y-1, z=pos.z}).name
+		--local a = minetest.get_node({x = pos.x, y = pos.y + 1, z = pos.z}).name
+		--local b = minetest.get_node({x = pos.x, y = pos.y - 1, z = pos.z}).name
 
 		-- input (from above)
 
@@ -225,12 +256,12 @@ minetest.register_abm({
 		or a == "hopper:hopper_side" then
 
 			-- chest/hopper above to hopper below
-			transfer("main", {x=pos.x, y=pos.y+1, z=pos.z}, "main", pos)
+			transfer("main", {x = pos.x, y = pos.y + 1, z = pos.z}, "main", pos)
 
 		elseif a == "default:furnace" or a == "default:furnace_active" then
 
 			-- furnace output above to hopper below
-			transfer("dst", {x=pos.x, y=pos.y+1, z=pos.z}, "main", pos)
+			transfer("dst", {x = pos.x, y = pos.y + 1, z = pos.z}, "main", pos)
 
 		end
 
@@ -241,12 +272,12 @@ minetest.register_abm({
 		or b == "protector:chest" then
 
 			-- hopper above to chest below
-			transfer("main", pos, "main", {x=pos.x, y=pos.y-1, z=pos.z})
+			transfer("main", pos, "main", {x = pos.x, y = pos.y - 1, z = pos.z})
 			
 		elseif b == "default:furnace" or b == "default:furnace_active" then
 
 			-- hopper above to furnace source below
-			transfer("main", pos, "src", {x=pos.x, y=pos.y-1, z=pos.z})
+			transfer("main", pos, "src", {x = pos.x, y = pos.y - 1, z = pos.z})
 		end
 	
 	end,
@@ -263,12 +294,12 @@ minetest.register_abm({
 	chance = 1,
 	action = function(pos, node, active_object_count, active_object_count_wider)
 
-		local min = {x=pos.x-1,y=pos.y,z=pos.z-1}
-		local max = {x=pos.x+1,y=pos.y+1,z=pos.z+1}
-		local vm = minetest.get_voxel_manip()	
-		local emin, emax = vm:read_from_map(min,max)
-		local area = VoxelArea:new{MinEdge=emin, MaxEdge=emax}
-		local data = vm:get_data()	
+		local min = {x = pos.x - 1, y = pos.y, z = pos.z - 1}
+		local max = {x = pos.x + 1, y = pos.y + 1, z = pos.z + 1}
+		local vm = minetest.get_voxel_manip()
+		local emin, emax = vm:read_from_map(min, max)
+		local area = VoxelArea:new{MinEdge = emin, MaxEdge = emax}
+		local data = vm:get_data()
 		local face = vm:get_node_at(pos).param2
 
 		local front = {}
@@ -276,19 +307,19 @@ minetest.register_abm({
 		--print(face)
 
 		if face == 0 then
-			front = {x=pos.x-1,y=pos.y,z=pos.z}
+			front = {x = pos.x - 1, y = pos.y, z = pos.z}
 		elseif face == 1 then
-			front = {x=pos.x,y=pos.y,z=pos.z+1}
+			front = {x = pos.x, y = pos.y, z = pos.z + 1}
 		elseif face == 2 then
-			front = {x=pos.x+1,y=pos.y,z=pos.z}
+			front = {x = pos.x + 1, y = pos.y, z = pos.z}
 		elseif face == 3 then
-			front = {x=pos.x,y=pos.y,z=pos.z-1}
+			front = {x = pos.x, y = pos.y, z = pos.z - 1}
 		end
 
-		local a = vm:get_node_at({x=pos.x,y=pos.y+1,z=pos.z}).name
+		local a = vm:get_node_at({x = pos.x, y = pos.y + 1,z = pos.z}).name
 		local b = vm:get_node_at(front).name
 
---		local a = minetest.get_node({x=pos.x, y=pos.y+1, z=pos.z}).name
+--		local a = minetest.get_node({x = pos.x, y = pos.y + 1, z = pos.z}).name
 --		local b = minetest.get_node(front).name
 
 		-- input (from above)
@@ -300,12 +331,12 @@ minetest.register_abm({
 		or a == "hopper:hopper_side" then
 
 			-- chest/hopper above to hopper below
-			transfer("main", {x=pos.x, y=pos.y+1, z=pos.z}, "main", pos)
+			transfer("main", {x = pos.x, y = pos.y + 1, z = pos.z}, "main", pos)
 
 		elseif a == "default:furnace" or a == "default:furnace_active" then
 
 			-- furnace output above to hopper below
-			transfer("dst", {x=pos.x, y=pos.y+1, z=pos.z}, "main", pos)
+			transfer("dst", {x = pos.x, y = pos.y + 1, z = pos.z}, "main", pos)
 
 		end
 
