@@ -1,3 +1,18 @@
+local function get_hopper_formspec(pos)
+	local spos = pos.x .. "," .. pos.y .. "," ..pos.z
+	local formspec =
+		"size[8,9]"
+		.. default.gui_bg
+		.. default.gui_bg_img
+		.. default.gui_slots
+		.. "list[nodemeta:" .. spos .. ";main;0,0.3;8,4;]"
+		.. "list[current_player;main;0,4.85;8,1;]"
+		.. "list[current_player;main;0,6.08;8,3;8]"
+		.. "listring[nodemeta:" .. spos .. ";main]"
+		.. "listring[current_player;main]"
+	return formspec
+end
+
 -- hopper
 minetest.register_node("hopper:hopper", {
 	description = "Hopper",
@@ -35,19 +50,11 @@ minetest.register_node("hopper:hopper", {
 	end,
 
 	on_rightclick = function(pos, node, clicker, itemstack)
-		local meta = minetest.get_meta(pos)
-		local spos = pos.x .. "," .. pos.y .. "," ..pos.z
-		local formspec =
-			"size[8,9]"
-			.. default.gui_bg
-			.. default.gui_bg_img
-			.. default.gui_slots
-			.. "list[nodemeta:"..spos..";main;0,0.3;8,4;]"
-			.. "list[current_player;main;0,4.85;8,1;]"
-			.. "list[current_player;main;0,6.08;8,3;8]"
-			.. "listring[nodemeta:"..spos..";main]"
-			.. "listring[current_player;main]"
-		minetest.show_formspec(clicker:get_player_name(), "", formspec)
+		minetest.show_formspec(
+			clicker:get_player_name(),
+			"hopper:hopper",
+			get_hopper_formspec(pos)
+		)
 	end,
 
 	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
@@ -95,7 +102,6 @@ minetest.register_node("hopper:hopper_side", {
 
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
-		--meta:set_string("formspec", hopper_formspec)
 		meta:set_string("infotext", "Side Hopper")
 		local inv = meta:get_inventory()
 		inv:set_size("main", 8*4)
@@ -108,19 +114,11 @@ minetest.register_node("hopper:hopper_side", {
 	end,
 
 	on_rightclick = function(pos, node, clicker, itemstack)
-		local meta = minetest.get_meta(pos)
-		local spos = pos.x .. "," .. pos.y .. "," ..pos.z
-		local formspec =
-			"size[8,9]"
-			.. default.gui_bg
-			.. default.gui_bg_img
-			.. default.gui_slots
-			.. "list[nodemeta:"..spos..";main;0,0.3;8,4;]"
-			.. "list[current_player;main;0,4.85;8,1;]"
-			.. "list[current_player;main;0,6.08;8,3;8]"
-			.. "listring[nodemeta:"..spos..";main]"
-			.. "listring[current_player;main]"
-		minetest.show_formspec(clicker:get_player_name(), "", formspec)
+		minetest.show_formspec(
+			clicker:get_player_name(),
+			"hopper:hopper_side",
+			get_hopper_formspec(pos)
+		)
 	end,
 
 	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
