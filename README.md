@@ -15,3 +15,5 @@ Released under WTFPL
 0.4 - Supports locked chest and protected chest
 
 0.5 - Works with 0.4.13's new shift+click for newly placed Hoppers
+
+0.6 - Remove formspec from hopper nodes to improve speed for servers

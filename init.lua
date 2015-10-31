@@ -74,6 +74,8 @@ minetest.register_node("hopper:hopper", {
 			.." takes stuff from hopper at "
 			..minetest.pos_to_string(pos))
 	end,
+
+	on_rotate = screwdriver.disallow,
 })
 
 -- hopper side
@@ -138,6 +140,8 @@ minetest.register_node("hopper:hopper_side", {
 			.." takes stuff from hopper at "
 			..minetest.pos_to_string(pos))
 	end,
+
+	on_rotate = screwdriver.rotate_simple,
 })
 
 -- suck in items on top of hopper
