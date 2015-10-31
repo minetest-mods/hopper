@@ -316,6 +316,8 @@ minetest.register_abm({
 			front = {x = pos.x + 1, y = pos.y, z = pos.z}
 		elseif face == 3 then
 			front = {x = pos.x, y = pos.y, z = pos.z - 1}
+		else
+			return
 		end
 
 		local a = vm:get_node_at({x = pos.x, y = pos.y + 1,z = pos.z}).name
