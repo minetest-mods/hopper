@@ -18,4 +18,6 @@ Released under WTFPL
 
 0.6 - Remove formspec from hopper nodes to improve speed for servers
 
-0.7 - Halved hopper capacity, can be dug by wooden pick, tweaked code
+0.7 - Halved hopper capacity, can be dug by wooden pick
+
+0.8 - Added Napiophelios' new textures and tweaked code
