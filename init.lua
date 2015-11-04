@@ -16,7 +16,7 @@ end
 -- hopper
 minetest.register_node("hopper:hopper", {
 	description = "Hopper",
-	groups = {cracky = 1, level = 2},
+	groups = {cracky = 3},
 	drawtype = "nodebox",
 	paramtype = "light",
 	tiles = {"default_coal_block.png"},
@@ -40,7 +40,7 @@ minetest.register_node("hopper:hopper", {
 		local meta = minetest.get_meta(pos)
 		meta:set_string("infotext", "Hopper")
 		local inv = meta:get_inventory()
-		inv:set_size("main", 8*4)
+		inv:set_size("main", 4*4) -- was 8*4
 	end,
 
 	can_dig = function(pos, player)
@@ -78,10 +78,10 @@ minetest.register_node("hopper:hopper", {
 	on_rotate = screwdriver.disallow,
 })
 
--- hopper side
+-- side hopper
 minetest.register_node("hopper:hopper_side", {
 	description = "Side Hopper",
-	groups = {cracky = 1, level = 2},
+	groups = {cracky = 3},
 	drawtype = "nodebox",
 	paramtype = "light",
 	paramtype2 = "facedir",
@@ -106,7 +106,7 @@ minetest.register_node("hopper:hopper_side", {
 		local meta = minetest.get_meta(pos)
 		meta:set_string("infotext", "Side Hopper")
 		local inv = meta:get_inventory()
-		inv:set_size("main", 8*4)
+		inv:set_size("main", 4*4) -- was 8*4
 	end,
 
 	can_dig = function(pos, player)
@@ -146,27 +146,34 @@ minetest.register_node("hopper:hopper_side", {
 
 -- suck in items on top of hopper
 minetest.register_abm({
+
 	nodenames = {"hopper:hopper", "hopper:hopper_side"},
 	interval = 1.0,
 	chance = 1,
-	action = function(pos, node, active_object_count, active_object_count_wider)
+
+	action = function(pos, node)
+
 		local meta = minetest.get_meta(pos)
 		local inv = meta:get_inventory()
 		local posob
 
 		for _,object in ipairs(minetest.get_objects_inside_radius(pos, 1)) do
+
 			if not object:is_player()
 			and object:get_luaentity()
-			and object:get_luaentity().name == "__builtin:item" then
-				if inv and inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
-					posob = object:getpos()
-					if math.abs(posob.x - pos.x) <= 0.5
-					and posob.y - pos.y <= 0.85
-					and posob.y - pos.y >= 0.3 then
-						inv:add_item("main", ItemStack(object:get_luaentity().itemstring))
-						object:get_luaentity().itemstring = ""
-						object:remove()
-					end
+			and object:get_luaentity().name == "__builtin:item"
+			and inv
+			and inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
+
+				posob = object:getpos()
+
+				if math.abs(posob.x - pos.x) <= 0.5
+				and posob.y - pos.y <= 0.85
+				and posob.y - pos.y >= 0.3 then
+
+					inv:add_item("main", ItemStack(object:get_luaentity().itemstring))
+					object:get_luaentity().itemstring = ""
+					object:remove()
 				end
 			end
 		end
@@ -208,11 +215,10 @@ local transfer = function(src, srcpos, dst, dstpos)
 			end
 
 			-- is item a tool
-			if stack:get_wear() > 0 then -- tool
-				local it = stack:take_item(stack:get_count())
-				inv2:add_item(dst, it)
+			if stack:get_wear() > 0 then
+				inv2:add_item(dst, stack:take_item(stack:get_count()))
 				inv:set_stack(src, i, nil)
-			else -- everything else
+			else -- not a tool
 				stack:take_item(1)
 				inv2:add_item(dst, item)
 				inv:set_stack(src, i, stack)
@@ -227,6 +233,7 @@ end
 
 -- hopper transfer
 minetest.register_abm({
+
 	nodenames = {"hopper:hopper"},
 	neighbors = {
 		"default:chest", "default:chest_locked", "protector:chest",
@@ -235,7 +242,8 @@ minetest.register_abm({
 	},
 	interval = 1.0,
 	chance = 1,
-	action = function(pos, node, active_object_count, active_object_count_wider)
+
+	action = function(pos, node)
 
 		local min = {x = pos.x, y = pos.y - 1, z = pos.z}
 		local max = {x = pos.x, y = pos.y + 1, z = pos.z}
@@ -258,12 +266,21 @@ minetest.register_abm({
 		or a == "hopper:hopper_side" then
 
 			-- chest/hopper above to hopper below
-			transfer("main", {x = pos.x, y = pos.y + 1, z = pos.z}, "main", pos)
+			transfer("main", {
+				x = pos.x,
+				y = pos.y + 1,
+				z = pos.z
+			}, "main", pos)
 
-		elseif a == "default:furnace" or a == "default:furnace_active" then
+		elseif a == "default:furnace"
+		or a == "default:furnace_active" then
 
 			-- furnace output above to hopper below
-			transfer("dst", {x = pos.x, y = pos.y + 1, z = pos.z}, "main", pos)
+			transfer("dst", {
+				x = pos.x,
+				y = pos.y + 1,
+				z = pos.z
+			}, "main", pos)
 
 		end
 
@@ -274,12 +291,21 @@ minetest.register_abm({
 		or b == "protector:chest" then
 
 			-- hopper above to chest below
-			transfer("main", pos, "main", {x = pos.x, y = pos.y - 1, z = pos.z})
-			
-		elseif b == "default:furnace" or b == "default:furnace_active" then
+			transfer("main", pos, "main", {
+				x = pos.x,
+				y = pos.y - 1,
+				z = pos.z
+			})
+
+		elseif b == "default:furnace"
+		or b == "default:furnace_active" then
 
 			-- hopper above to furnace source below
-			transfer("main", pos, "src", {x = pos.x, y = pos.y - 1, z = pos.z})
+			transfer("main", pos, "src", {
+				x = pos.x,
+				y = pos.y - 1,
+				z = pos.z
+			})
 		end
 	
 	end,
@@ -287,6 +313,7 @@ minetest.register_abm({
 
 -- hopper side
 minetest.register_abm({
+
 	nodenames = {"hopper:hopper_side"},
 	neighbors = {
 		"default:chest","default:chest_locked","protector:chest",
@@ -294,7 +321,8 @@ minetest.register_abm({
 	},
 	interval = 1.0,
 	chance = 1,
-	action = function(pos, node, active_object_count, active_object_count_wider)
+
+	action = function(pos, node)
 
 		local min = {x = pos.x - 1, y = pos.y, z = pos.z - 1}
 		local max = {x = pos.x + 1, y = pos.y + 1, z = pos.z + 1}
@@ -305,8 +333,7 @@ minetest.register_abm({
 		local face = vm:get_node_at(pos).param2
 
 		local front = {}
-		--local face = minetest.get_node(pos).param2
-		--print(face)
+		--local face = minetest.get_node(pos).param2 ; print(face)
 
 		if face == 0 then
 			front = {x = pos.x - 1, y = pos.y, z = pos.z}
@@ -335,12 +362,21 @@ minetest.register_abm({
 		or a == "hopper:hopper_side" then
 
 			-- chest/hopper above to hopper below
-			transfer("main", {x = pos.x, y = pos.y + 1, z = pos.z}, "main", pos)
+			transfer("main", {
+				x = pos.x,
+				y = pos.y + 1,
+				z = pos.z
+			}, "main", pos)
 
-		elseif a == "default:furnace" or a == "default:furnace_active" then
+		elseif a == "default:furnace"
+		or a == "default:furnace_active" then
 
 			-- furnace output above to hopper below
-			transfer("dst", {x = pos.x, y = pos.y + 1, z = pos.z}, "main", pos)
+			transfer("dst", {
+				x = pos.x,
+				y = pos.y + 1,
+				z = pos.z
+			}, "main", pos)
 
 		end
 
@@ -355,9 +391,10 @@ minetest.register_abm({
 			-- hopper to chest beside
 			transfer("main", pos, "main", front)
 			
-		elseif b == "default:furnace" or b == "default:furnace_active" then
+		elseif b == "default:furnace"
+		or b == "default:furnace_active" then
 
-			-- hopper above to furnace fuel beside
+			-- hopper to furnace fuel beside
 			transfer("main", pos, "fuel", front)
 		end
 		
@@ -374,6 +411,7 @@ minetest.register_craft({
 	},
 })
 
+-- hopper to side hopper recipe
 minetest.register_craft({
 	output = "hopper:hopper",
 	recipe = {
@@ -381,7 +419,7 @@ minetest.register_craft({
 	},
 })
 
--- side hopper recipe
+-- side hopper back to hopper recipe
 minetest.register_craft({
 	output = "hopper:hopper_side",
 	recipe = {
