@@ -405,7 +405,6 @@ minetest.register_abm({
 minetest.register_craft({
 	output = "hopper:hopper",
 	recipe = {
-		{"default:steel_ingot", "", "default:steel_ingot"},
 		{"default:steel_ingot", "default:chest", "default:steel_ingot"},
 		{"", "default:steel_ingot", ""},
 	},
