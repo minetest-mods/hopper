@@ -19,7 +19,8 @@ minetest.register_node("hopper:hopper", {
 	groups = {cracky = 3},
 	drawtype = "nodebox",
 	paramtype = "light",
-	tiles = {"default_coal_block.png"},
+	tiles = {"hopper_top.png", "hopper_top.png", "hopper_front.png"},
+	inventory_image = "hopper_inv.png",
 	node_box = {
 		type = "fixed",
 		fixed = {
@@ -85,7 +86,8 @@ minetest.register_node("hopper:hopper_side", {
 	drawtype = "nodebox",
 	paramtype = "light",
 	paramtype2 = "facedir",
-	tiles = {"default_coal_block.png"},
+	tiles = {"hopper_top.png", "hopper_top.png", "hopper_back.png", "hopper_side.png", "hopper_back.png", "hopper_back.png"},
+	inventory_image = "hopper_side_inv.png",
 	node_box = {
 		type = "fixed",
 		fixed = {
