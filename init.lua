@@ -152,6 +152,7 @@ minetest.register_abm({
 	nodenames = {"hopper:hopper", "hopper:hopper_side"},
 	interval = 1.0,
 	chance = 1,
+	catch_up = false,
 
 	action = function(pos, node)
 
@@ -244,6 +245,7 @@ minetest.register_abm({
 	},
 	interval = 1.0,
 	chance = 1,
+	catch_up = false,
 
 	action = function(pos, node)
 
@@ -323,6 +325,7 @@ minetest.register_abm({
 	},
 	interval = 1.0,
 	chance = 1,
+	catch_up = false,
 
 	action = function(pos, node)
 
