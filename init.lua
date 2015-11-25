@@ -247,7 +247,7 @@ minetest.register_abm({
 	neighbors = {
 		"default:chest", "default:chest_locked", "protector:chest",
 		"hopper:hopper", "hopper:hopper_side", "default:furnace",
-		"default:furnace_active"
+		"default:furnace_active", "wine:wine_barrel"
 	},
 	interval = 1.0,
 	chance = 1,
@@ -283,7 +283,8 @@ minetest.register_abm({
 			}, "main", pos)
 
 		elseif a == "default:furnace"
-		or a == "default:furnace_active" then
+		or a == "default:furnace_active"
+		or a == "wine:wine_barrel" then
 
 			-- furnace output above to hopper below
 			transfer("dst", {
@@ -308,7 +309,8 @@ minetest.register_abm({
 			})
 
 		elseif b == "default:furnace"
-		or b == "default:furnace_active" then
+		or b == "default:furnace_active"
+		or b == "wine:wine_barrel" then
 
 			-- hopper above to furnace source below
 			transfer("main", pos, "src", {
@@ -327,7 +329,8 @@ minetest.register_abm({
 	nodenames = {"hopper:hopper_side"},
 	neighbors = {
 		"default:chest","default:chest_locked","protector:chest",
-		"hopper:hopper","hopper:hopper_side","default:furnace","default:furnace_active"
+		"hopper:hopper","hopper:hopper_side","default:furnace",
+		"default:furnace_active", "wine:wine_barrel"
 	},
 	interval = 1.0,
 	chance = 1,
@@ -380,7 +383,8 @@ minetest.register_abm({
 			}, "main", pos)
 
 		elseif a == "default:furnace"
-		or a == "default:furnace_active" then
+		or a == "default:furnace_active"
+		or a == "wine:wine_barrel" then
 
 			-- furnace output above to hopper below
 			transfer("dst", {
@@ -407,6 +411,11 @@ minetest.register_abm({
 
 			-- hopper to furnace fuel beside
 			transfer("main", pos, "fuel", front)
+
+		elseif b == "wine:wine_barrel" then
+
+			-- hopper to wine source beside
+			transfer("main", pos, "src", front)
 		end
 		
 	end,
