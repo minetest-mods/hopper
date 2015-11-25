@@ -51,6 +51,9 @@ minetest.register_node("hopper:hopper", {
 	end,
 
 	on_rightclick = function(pos, node, clicker, itemstack)
+		if minetest.is_protected(pos, clicker:get_player_name()) then
+			return
+		end
 		minetest.show_formspec(
 			clicker:get_player_name(),
 			"hopper:hopper",
@@ -118,6 +121,9 @@ minetest.register_node("hopper:hopper_side", {
 	end,
 
 	on_rightclick = function(pos, node, clicker, itemstack)
+		if minetest.is_protected(pos, clicker:get_player_name()) then
+			return
+		end
 		minetest.show_formspec(
 			clicker:get_player_name(),
 			"hopper:hopper_side",
