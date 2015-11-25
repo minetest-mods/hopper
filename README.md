@@ -21,3 +21,5 @@ Released under WTFPL
 0.7 - Halved hopper capacity, can be dug by wooden pick
 
 0.8 - Added Napiophelios' new textures and tweaked code
+
+0.9 - Added support for Wine mod's wine barrels
