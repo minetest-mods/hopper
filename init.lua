@@ -1,3 +1,8 @@
+
+-- change back to old style amb furnaces so that hoppers work fine
+dofile(minetest.get_modpath("hopper") .. "/furnace.lua")
+
+-- formspec
 local function get_hopper_formspec(pos)
 	local spos = pos.x .. "," .. pos.y .. "," ..pos.z
 	local formspec =
@@ -166,7 +171,7 @@ minetest.register_abm({
 		local inv = meta:get_inventory()
 		local posob
 
-		for _,object in ipairs(minetest.get_objects_inside_radius(pos, 1)) do
+		for _,object in pairs(minetest.get_objects_inside_radius(pos, 1)) do
 
 			if not object:is_player()
 			and object:get_luaentity()
@@ -445,3 +450,5 @@ minetest.register_craft({
 		{"hopper:hopper"},
 	},
 })
+
+print ("[MOD] Hopper loaded")

@@ -23,3 +23,5 @@ Released under WTFPL
 0.8 - Added Napiophelios' new textures and tweaked code
 
 0.9 - Added support for Wine mod's wine barrels
+
+1.0 - New furances do not work properly with hoppers so old reverted to abm furnaces
