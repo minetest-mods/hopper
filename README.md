@@ -25,3 +25,5 @@ Released under WTFPL
 0.9 - Added support for Wine mod's wine barrels
 
 1.0 - New furances do not work properly with hoppers so old reverted to abm furnaces
+
+1.1 - Hoppers now work with new node timer Furnaces.  Reduced Abm's and tidied code.

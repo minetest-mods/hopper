@@ -1,7 +1,4 @@
 
--- change back to old style amb furnaces so that hoppers work fine
-dofile(minetest.get_modpath("hopper") .. "/furnace.lua")
-
 -- formspec
 local function get_hopper_formspec(pos)
 	local spos = pos.x .. "," .. pos.y .. "," ..pos.z
@@ -44,9 +41,9 @@ minetest.register_node("hopper:hopper", {
 
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
-		meta:set_string("infotext", "Hopper")
 		local inv = meta:get_inventory()
-		inv:set_size("main", 4*4) -- was 8*4
+		meta:set_string("infotext", "Hopper")
+		inv:set_size("main", 4*4)
 	end,
 
 	can_dig = function(pos, player)
@@ -94,7 +91,10 @@ minetest.register_node("hopper:hopper_side", {
 	drawtype = "nodebox",
 	paramtype = "light",
 	paramtype2 = "facedir",
-	tiles = {"hopper_top.png", "hopper_top.png", "hopper_back.png", "hopper_side.png", "hopper_back.png", "hopper_back.png"},
+	tiles = {
+		"hopper_top.png", "hopper_top.png", "hopper_back.png",
+		"hopper_side.png", "hopper_back.png", "hopper_back.png"
+	},
 	inventory_image = "hopper_side_inv.png",
 	node_box = {
 		type = "fixed",
@@ -114,9 +114,9 @@ minetest.register_node("hopper:hopper_side", {
 
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
-		meta:set_string("infotext", "Side Hopper")
 		local inv = meta:get_inventory()
-		inv:set_size("main", 4*4) -- was 8*4
+		meta:set_string("infotext", "Side Hopper")
+		inv:set_size("main", 4*4)
 	end,
 
 	can_dig = function(pos, player)
@@ -195,7 +195,7 @@ minetest.register_abm({
 })
 
 -- transfer function
-local transfer = function(src, srcpos, dst, dstpos)
+local transfer = function(src, srcpos, dst, dstpos, name)
 
 	-- source inventory
 	local meta = minetest.get_meta(srcpos)
@@ -245,93 +245,10 @@ local transfer = function(src, srcpos, dst, dstpos)
 
 end
 
--- hopper transfer
+-- hopper workings
 minetest.register_abm({
 
-	nodenames = {"hopper:hopper"},
-	neighbors = {
-		"default:chest", "default:chest_locked", "protector:chest",
-		"hopper:hopper", "hopper:hopper_side", "default:furnace",
-		"default:furnace_active", "wine:wine_barrel"
-	},
-	interval = 1.0,
-	chance = 1,
-	catch_up = false,
-
-	action = function(pos, node)
-
-		local min = {x = pos.x, y = pos.y - 1, z = pos.z}
-		local max = {x = pos.x, y = pos.y + 1, z = pos.z}
-		local vm = minetest.get_voxel_manip()
-		local emin, emax = vm:read_from_map(min, max)
-		local area = VoxelArea:new{MinEdge = emin, MaxEdge = emax}
-		local data = vm:get_data()
-		local a = vm:get_node_at({x = pos.x, y = pos.y + 1, z = pos.z}).name
-		local b = vm:get_node_at({x = pos.x, y = pos.y - 1, z = pos.z}).name
-
-		--local a = minetest.get_node({x = pos.x, y = pos.y + 1, z = pos.z}).name
-		--local b = minetest.get_node({x = pos.x, y = pos.y - 1, z = pos.z}).name
-
-		-- input (from above)
-
-		if a == "default:chest"
-		or a == "default:chest_locked"
-		or a == "protector:chest"
-		or a == "hopper:hopper"
-		or a == "hopper:hopper_side" then
-
-			-- chest/hopper above to hopper below
-			transfer("main", {
-				x = pos.x,
-				y = pos.y + 1,
-				z = pos.z
-			}, "main", pos)
-
-		elseif a == "default:furnace"
-		or a == "default:furnace_active"
-		or a == "wine:wine_barrel" then
-
-			-- furnace output above to hopper below
-			transfer("dst", {
-				x = pos.x,
-				y = pos.y + 1,
-				z = pos.z
-			}, "main", pos)
-
-		end
-
-		-- output (to below)
-
-		if b == "default:chest"
-		or b == "default:chest_locked"
-		or b == "protector:chest" then
-
-			-- hopper above to chest below
-			transfer("main", pos, "main", {
-				x = pos.x,
-				y = pos.y - 1,
-				z = pos.z
-			})
-
-		elseif b == "default:furnace"
-		or b == "default:furnace_active"
-		or b == "wine:wine_barrel" then
-
-			-- hopper above to furnace source below
-			transfer("main", pos, "src", {
-				x = pos.x,
-				y = pos.y - 1,
-				z = pos.z
-			})
-		end
-	
-	end,
-})
-
--- hopper side
-minetest.register_abm({
-
-	nodenames = {"hopper:hopper_side"},
+	nodenames = {"hopper:hopper", "hopper:hopper_side"},
 	neighbors = {
 		"default:chest","default:chest_locked","protector:chest",
 		"hopper:hopper","hopper:hopper_side","default:furnace",
@@ -343,36 +260,37 @@ minetest.register_abm({
 
 	action = function(pos, node)
 
-		local min = {x = pos.x - 1, y = pos.y, z = pos.z - 1}
-		local max = {x = pos.x + 1, y = pos.y + 1, z = pos.z + 1}
-		local vm = minetest.get_voxel_manip()
-		local emin, emax = vm:read_from_map(min, max)
-		local area = VoxelArea:new{MinEdge = emin, MaxEdge = emax}
-		local data = vm:get_data()
-		local face = vm:get_node_at(pos).param2
-
 		local front = {}
-		--local face = minetest.get_node(pos).param2 ; print(face)
 
-		if face == 0 then
-			front = {x = pos.x - 1, y = pos.y, z = pos.z}
-		elseif face == 1 then
-			front = {x = pos.x, y = pos.y, z = pos.z + 1}
-		elseif face == 2 then
-			front = {x = pos.x + 1, y = pos.y, z = pos.z}
-		elseif face == 3 then
-			front = {x = pos.x, y = pos.y, z = pos.z - 1}
+		-- if side hopper check which way it's facing
+		if node.name == "hopper:hopper_side" then
+
+			local face = minetest.get_node(pos).param2
+
+			if face == 0 then
+				front = {x = pos.x - 1, y = pos.y, z = pos.z}
+
+			elseif face == 1 then
+				front = {x = pos.x, y = pos.y, z = pos.z + 1}
+
+			elseif face == 2 then
+				front = {x = pos.x + 1, y = pos.y, z = pos.z}
+
+			elseif face == 3 then
+				front = {x = pos.x, y = pos.y, z = pos.z - 1}
+			else
+				return
+			end
 		else
-			return
+			-- otherwise normal hopper, output downwards
+			front = {x = pos.x, y = pos.y - 1, z = pos.z}
 		end
 
-		local a = vm:get_node_at({x = pos.x, y = pos.y + 1,z = pos.z}).name
-		local b = vm:get_node_at(front).name
+		-- what is above hopper and on other end of funnel
+		local a = minetest.get_node({x = pos.x, y = pos.y + 1, z = pos.z}).name
+		local b = minetest.get_node(front).name
 
---		local a = minetest.get_node({x = pos.x, y = pos.y + 1, z = pos.z}).name
---		local b = minetest.get_node(front).name
-
-		-- input (from above)
+		-- funnel input
 
 		if a == "default:chest"
 		or a == "default:chest_locked"
@@ -380,7 +298,6 @@ minetest.register_abm({
 		or a == "hopper:hopper"
 		or a == "hopper:hopper_side" then
 
-			-- chest/hopper above to hopper below
 			transfer("main", {
 				x = pos.x,
 				y = pos.y + 1,
@@ -391,16 +308,26 @@ minetest.register_abm({
 		or a == "default:furnace_active"
 		or a == "wine:wine_barrel" then
 
-			-- furnace output above to hopper below
 			transfer("dst", {
 				x = pos.x,
 				y = pos.y + 1,
 				z = pos.z
 			}, "main", pos)
 
+			-- re-start furnace timer
+			if a == "default:furnace"
+			or a == "default:furnace_active" then
+
+				minetest.get_node_timer({
+					x = pos.x,
+					y = pos.y + 1,
+					z = pos.z
+				}):start(1.0)
+			end
+
 		end
 
-		-- output (to side)
+		-- spout output
 
 		if b == "default:chest"
 		or b == "default:chest_locked"
@@ -408,14 +335,21 @@ minetest.register_abm({
 		or b == "hopper:hopper"
 		or b == "hopper:hopper_side" then
 
-			-- hopper to chest beside
 			transfer("main", pos, "main", front)
 			
 		elseif b == "default:furnace"
 		or b == "default:furnace_active" then
 
-			-- hopper to furnace fuel beside
-			transfer("main", pos, "fuel", front)
+			if node.name == "hopper:hopper" then
+				-- hopper above to furnace source below
+				transfer("main", pos, "src", front)
+			else
+				-- hopper to furnace fuel beside
+				transfer("main", pos, "fuel", front)
+			end
+
+			-- re-start furnace timer
+			minetest.get_node_timer(pos):start(1.0)
 
 		elseif b == "wine:wine_barrel" then
 
