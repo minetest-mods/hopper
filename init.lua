@@ -1,6 +1,7 @@
 
 -- formspec
 local function get_hopper_formspec(pos)
+
 	local spos = pos.x .. "," .. pos.y .. "," ..pos.z
 	local formspec =
 		"size[8,9]"
@@ -12,6 +13,7 @@ local function get_hopper_formspec(pos)
 		.. "list[current_player;main;0,6.08;8,3;8]"
 		.. "listring[nodemeta:" .. spos .. ";main]"
 		.. "listring[current_player;main]"
+
 	return formspec
 end
 
@@ -40,42 +42,45 @@ minetest.register_node("hopper:hopper", {
 	},
 
 	on_construct = function(pos)
-		local meta = minetest.get_meta(pos)
-		local inv = meta:get_inventory()
-		meta:set_string("infotext", "Hopper")
+
+		local inv = minetest.get_meta(pos):get_inventory()
+
 		inv:set_size("main", 4*4)
 	end,
 
 	can_dig = function(pos, player)
-		local meta = minetest.get_meta(pos)
-		local inv = meta:get_inventory()
+
+		local inv = minetest.get_meta(pos):get_inventory()
+
 		return inv:is_empty("main")
 	end,
 
 	on_rightclick = function(pos, node, clicker, itemstack)
+
 		if minetest.is_protected(pos, clicker:get_player_name()) then
 			return
 		end
-		minetest.show_formspec(
-			clicker:get_player_name(),
-			"hopper:hopper",
-			get_hopper_formspec(pos)
-		)
+
+		minetest.show_formspec(clicker:get_player_name(),
+			"hopper:hopper", get_hopper_formspec(pos))
 	end,
 
 	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
+
 		minetest.log("action", player:get_player_name()
 			.." moves stuff in hopper at "
 			..minetest.pos_to_string(pos))
 	end,
 
 	on_metadata_inventory_put = function(pos, listname, index, stack, player)
+
 		minetest.log("action", player:get_player_name()
 			.." moves stuff to hopper at "
 			..minetest.pos_to_string(pos))
 	end,
 
 	on_metadata_inventory_take = function(pos, listname, index, stack, player)
+
 		minetest.log("action", player:get_player_name()
 			.." takes stuff from hopper at "
 			..minetest.pos_to_string(pos))
@@ -113,42 +118,45 @@ minetest.register_node("hopper:hopper_side", {
 	},
 
 	on_construct = function(pos)
-		local meta = minetest.get_meta(pos)
-		local inv = meta:get_inventory()
-		meta:set_string("infotext", "Side Hopper")
+
+		local inv = minetest.get_meta(pos):get_inventory()
+
 		inv:set_size("main", 4*4)
 	end,
 
 	can_dig = function(pos, player)
-		local meta = minetest.get_meta(pos)
-		local inv = meta:get_inventory()
+
+		local inv = minetest.get_meta(pos):get_inventory()
+
 		return inv:is_empty("main")
 	end,
 
 	on_rightclick = function(pos, node, clicker, itemstack)
+
 		if minetest.is_protected(pos, clicker:get_player_name()) then
 			return
 		end
-		minetest.show_formspec(
-			clicker:get_player_name(),
-			"hopper:hopper_side",
-			get_hopper_formspec(pos)
-		)
+
+		minetest.show_formspec(clicker:get_player_name(),
+			"hopper:hopper_side", get_hopper_formspec(pos))
 	end,
 
 	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
+
 		minetest.log("action", player:get_player_name()
 			.." moves stuff in hopper at "
 			..minetest.pos_to_string(pos))
 	end,
 
 	on_metadata_inventory_put = function(pos, listname, index, stack, player)
+
 		minetest.log("action", player:get_player_name()
 			.." moves stuff to hopper at "
 			..minetest.pos_to_string(pos))
 	end,
 
 	on_metadata_inventory_take = function(pos, listname, index, stack, player)
+
 		minetest.log("action", player:get_player_name()
 			.." takes stuff from hopper at "
 			..minetest.pos_to_string(pos))
@@ -167,8 +175,7 @@ minetest.register_abm({
 
 	action = function(pos, node)
 
-		local meta = minetest.get_meta(pos)
-		local inv = meta:get_inventory()
+		local inv = minetest.get_meta(pos):get_inventory()
 		local posob
 
 		for _,object in pairs(minetest.get_objects_inside_radius(pos, 1)) do
@@ -177,7 +184,8 @@ minetest.register_abm({
 			and object:get_luaentity()
 			and object:get_luaentity().name == "__builtin:item"
 			and inv
-			and inv:room_for_item("main", ItemStack(object:get_luaentity().itemstring)) then
+			and inv:room_for_item("main",
+				ItemStack(object:get_luaentity().itemstring)) then
 
 				posob = object:getpos()
 
@@ -185,7 +193,9 @@ minetest.register_abm({
 				and posob.y - pos.y <= 0.85
 				and posob.y - pos.y >= 0.3 then
 
-					inv:add_item("main", ItemStack(object:get_luaentity().itemstring))
+					inv:add_item("main",
+						ItemStack(object:get_luaentity().itemstring))
+
 					object:get_luaentity().itemstring = ""
 					object:remove()
 				end
@@ -198,8 +208,7 @@ minetest.register_abm({
 local transfer = function(src, srcpos, dst, dstpos, name)
 
 	-- source inventory
-	local meta = minetest.get_meta(srcpos)
-	local inv = meta:get_inventory()
+	local inv = minetest.get_meta(srcpos):get_inventory()
 	local invsize = inv:get_size(src)
 
 	-- check for empty source
@@ -208,8 +217,7 @@ local transfer = function(src, srcpos, dst, dstpos, name)
 	end
 
 	-- destination inventory
-	local meta2 = minetest.get_meta(dstpos)
-	local inv2 = meta2:get_inventory()
+	local inv2 = minetest.get_meta(dstpos):get_inventory()
 	local invsize2 = inv2:get_size(dst)
 
 	local stack, item
