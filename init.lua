@@ -209,21 +209,19 @@ local transfer = function(src, srcpos, dst, dstpos, name)
 
 	-- source inventory
 	local inv = minetest.get_meta(srcpos):get_inventory()
-	local invsize = inv:get_size(src)
-
-	-- check for empty source
-	if inv:is_empty(src) == true then
-		return
-	end
 
 	-- destination inventory
 	local inv2 = minetest.get_meta(dstpos):get_inventory()
-	local invsize2 = inv2:get_size(dst)
+
+	-- check for empty source or no inventory
+	if not inv or not inv2 or inv:is_empty(src) == true then
+		return
+	end
 
 	local stack, item
 
 	-- transfer item
-	for i = 1, invsize do
+	for i = 1, inv:get_size(src) do
 
 		stack = inv:get_stack(src, i)
 		item = stack:get_name()
