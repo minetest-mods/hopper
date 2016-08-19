@@ -168,6 +168,7 @@ minetest.register_node("hopper:hopper_side", {
 -- suck in items on top of hopper
 minetest.register_abm({
 
+	label = "Hopper suction",
 	nodenames = {"hopper:hopper", "hopper:hopper_side"},
 	interval = 1.0,
 	chance = 1,
@@ -254,6 +255,7 @@ end
 -- hopper workings
 minetest.register_abm({
 
+	label = "Hopper transfer",
 	nodenames = {"hopper:hopper", "hopper:hopper_side"},
 	neighbors = {
 		"default:chest","default:chest_locked","protector:chest",
