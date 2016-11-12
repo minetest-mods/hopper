@@ -393,4 +393,15 @@ minetest.register_craft({
 	},
 })
 
+-- add lucky blocks
+
+-- Hopper mod
+if minetest.get_modpath("lucky_block") then
+
+	lucky_block:add_blocks({
+		{"dro", {"hopper:hopper"}, 3},
+		{"nod", "default:lava_source", 1},
+	})
+end
+
 print ("[MOD] Hopper loaded")
