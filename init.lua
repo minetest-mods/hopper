@@ -227,13 +227,9 @@ local transfer = function(src, srcpos, dst, dstpos, name)
 		stack = inv:get_stack(src, i)
 		item = stack:get_name()
 
-		-- if slot not empty
-		if item ~= "" then
-
-			-- room in destination?
-			if inv2:room_for_item(dst, item) == false then
-				return
-			end
+		-- if slot not empty and room for item in destination
+		if item ~= ""
+		and inv2:room_for_item(dst, item) then
 
 			-- is item a tool
 			if stack:get_wear() > 0 then
@@ -246,7 +242,6 @@ local transfer = function(src, srcpos, dst, dstpos, name)
 			end
 
 			return
-
 		end
 	end
 
