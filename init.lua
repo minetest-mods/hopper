@@ -316,18 +316,6 @@ minetest.register_abm({
 				y = pos.y + 1,
 				z = pos.z
 			}, "main", pos)
-
-			-- re-start furnace timer
-			if a == "default:furnace"
-			or a == "default:furnace_active" then
-
-				minetest.get_node_timer({
-					x = pos.x,
-					y = pos.y + 1,
-					z = pos.z
-				}):start(1.0)
-			end
-
 		end
 
 		-- spout output
@@ -352,7 +340,7 @@ minetest.register_abm({
 			end
 
 			-- re-start furnace timer
-			minetest.get_node_timer(pos):start(1.0)
+			minetest.get_node_timer(front):start(0.5)--(1.0)
 
 		elseif b == "wine:wine_barrel" then
 
