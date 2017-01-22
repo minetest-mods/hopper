@@ -12,22 +12,6 @@ if single_craftable_item == nil then
 	single_craftable_item = true
 end
 
-minetest.debug("single craftable item setting", tostring(single_craftable_item))
-
--- adds to the corresponding abm neighbor list
-local function add_neighbor(hopper_name, neighbor_node)
-	if hopper.neighbors[hopper_name] == nil then
-		hopper.neighbors[hopper_name] = { neighbor_node }
-		return
-	end
-	for _, value in pairs(hopper.neighbors[hopper_name]) do
-		if value == neighbor_node then
-			return
-		end
-	end
-	table.insert(hopper.neighbors[hopper_name], neighbor_node)
-end
-
 local function add_inventory(hopper_name, source_or_destination, target_node, target_inventory)
 	if hopper.targets[hopper_name] == nil then
 		hopper.targets[hopper_name] = {[source_or_destination] = {[target_node] = target_inventory}}
@@ -36,6 +20,13 @@ local function add_inventory(hopper_name, source_or_destination, target_node, ta
 	else
 		hopper.targets[hopper_name][source_or_destination][target_node] = target_inventory
 	end
+	
+	for _, value in pairs(hopper.neighbors) do
+		if value == target_node then
+			return
+		end
+	end
+	table.insert(hopper.neighbors, target_node)
 end
 
 -- These two following methods are available for other mods to hook their nodes up to hoppers.
@@ -43,13 +34,11 @@ end
 -- Adds a node type that hoppers will take items from when it's located in the hopper's source loication, and defines what inventory name the hopper takes items from
 hopper.add_source = function(hopper_name, source_node, source_inventory)
 	add_inventory(hopper_name, "source", source_node, source_inventory)
-	add_neighbor(hopper_name, source_node)
 end
 
 -- Adds a node type that hoppers will put items into when it's located in the hopper's destination loication, and defines what inventory name the hopper puts items into
 hopper.add_destination = function(hopper_name, destination_node, destination_inventory)
 	add_inventory(hopper_name, "destination", destination_node, destination_inventory)
-	add_neighbor(hopper_name, destination_node)
 end
 
 -- Build the default sources and destinations
@@ -293,28 +282,27 @@ local function take_item_from(hopper_pos, target_pos, target_node, target_invent
 	end
 
 	--hopper inventory
-	local meta = minetest.get_meta(hopper_pos);
-	local inv = meta:get_inventory()
-	local placer = minetest.get_player_by_name(meta:get_string("placer"))
+	local hopper_meta = minetest.get_meta(hopper_pos);
+	local hopper_inv = hopper_meta:get_inventory()
+	local placer = minetest.get_player_by_name(hopper_meta:get_string("placer"))
 
-	--target inventory
-	local meta2 = minetest.get_meta(target_pos);
-	local inv2 = meta2:get_inventory()
-	local invsize2 = inv2:get_size(target_inventory_name)
+	--source inventory
+	local target_inv = minetest.get_meta(target_pos):get_inventory()
+	local target_inv_size = target_inv:get_size(target_inventory_name)
 	local target_def = minetest.registered_nodes[target_node.name]
-	if inv2:is_empty(target_inventory_name) == false then
-		for i = 1,invsize2 do
-			local stack = inv2:get_stack(target_inventory_name, i)
+	if target_inv:is_empty(target_inventory_name) == false then
+		for i = 1,target_inv_size do
+			local stack = target_inv:get_stack(target_inventory_name, i)
 			local item = stack:get_name()
 			if item ~= "" then
-				if inv:room_for_item("main", item) then
+				if hopper_inv:room_for_item("main", item) then
 					local stack_to_take = stack:take_item(1)
 					if target_def.allow_metadata_inventory_take == nil
 					  or placer == nil -- backwards compatibility, older versions of this mod didn't record who placed the hopper
 					  or target_def.allow_metadata_inventory_take(target_pos, target_inventory_name, i, stack_to_take, placer) > 0 then		
-						inv2:set_stack(target_inventory_name, i, stack)
+						target_inv:set_stack(target_inventory_name, i, stack)
 						--add to hopper
-						inv:add_item("main", item)
+						hopper_inv:add_item("main", item)
 						if target_def.on_metadata_inventory_take ~= nil and placer ~= nil then
 							target_def.on_metadata_inventory_take(target_pos, target_inventory_name, i, stack_to_take, placer)
 						end
@@ -332,35 +320,30 @@ local function send_item_to(hopper_pos, target_pos, target_node, target_inventor
 	end
 
 	--hopper inventory
-	local meta = minetest.get_meta(hopper_pos);
-	local inv = meta:get_inventory()
-	if inv:is_empty("main") == true then
+	local hopper_meta = minetest.get_meta(hopper_pos);
+	local hopper_inv = hopper_meta:get_inventory()
+	if hopper_inv:is_empty("main") == true then
 		return
 	end
-	local invsize = inv:get_size("main")
-	local placer = minetest.get_player_by_name(meta:get_string("placer"))
+	local hopper_inv_size = hopper_inv:get_size("main")
+	local placer = minetest.get_player_by_name(hopper_meta:get_string("placer"))
 	
-	--chest/hopper/furnace inventory
-	local meta2 = minetest.get_meta(target_pos);
-	local inv2 = meta2:get_inventory()
+	--target inventory
+	local target_inv = minetest.get_meta(target_pos):get_inventory()
 	local target_def = minetest.registered_nodes[target_node.name]
 
-	if (target_def.allow_metadata_inventory_put ~= nil) then
-		minetest.debug("target node", target_node.name)
-	end
-	
-	for i = 1,invsize do
-		local stack = inv:get_stack("main", i)
+	for i = 1,hopper_inv_size do
+		local stack = hopper_inv:get_stack("main", i)
 		local item = stack:get_name()
 		if item ~= "" then
-			if inv2:room_for_item(target_inventory_name, item) then
+			if target_inv:room_for_item(target_inventory_name, item) then
 				local stack_to_put = stack:take_item(1)
 				if target_def.allow_metadata_inventory_put == nil
 				  or placer == nil -- backwards compatibility, older versions of this mod didn't record who placed the hopper
 				  or target_def.allow_metadata_inventory_put(target_pos, target_inventory_name, i, stack_to_put, placer) > 0 then
-					inv:set_stack("main", i, stack)
+					hopper_inv:set_stack("main", i, stack)
 					--add to hopper or chest
-					inv2:add_item(target_inventory_name, item)
+					target_inv:add_item(target_inventory_name, item)
 					if target_def.on_metadata_inventory_put ~= nil and placer ~= nil then
 						target_def.on_metadata_inventory_put(target_pos, target_inventory_name, i, stack_to_put, placer)
 					end
@@ -370,39 +353,6 @@ local function send_item_to(hopper_pos, target_pos, target_node, target_inventor
 		end
 	end
 end
-
-minetest.register_abm({
-	nodenames = {"hopper:hopper"},
-	neighbors = hopper.neighbors["hopper:hopper"],
-	interval = 1.0,
-	chance = 1,
-	action = function(pos, node, active_object_count, active_object_count_wider)
-
-		local min = {x=pos.x-1,y=pos.y-1,z=pos.z-1}
-		local max = {x=pos.x+1,y=pos.y+1,z=pos.z+1}
-		local vm = minetest.get_voxel_manip()	
-		local emin, emax = vm:read_from_map(min,max)
-		local area = VoxelArea:new{MinEdge=emin, MaxEdge=emax}
-		local data = vm:get_data()	
-
-		local source_pos = {x=pos.x,y=pos.y+1,z=pos.z}
-		local destination_pos = {x=pos.x,y=pos.y-1,z=pos.z}
-		
-		local destination_node = vm:get_node_at(destination_pos)
-		local source_node = vm:get_node_at(source_pos)
-
-		local source_inventory = hopper.targets["hopper:hopper"]["source"][source_node.name]
-		local destination_inventory = hopper.targets["hopper:hopper"]["destination"][destination_node.name]
-		
-		if source_inventory ~= nil then
-			take_item_from(pos, source_pos, source_node, source_inventory)
-		end
-		
-		if destination_inventory ~= nil then
-			send_item_to(pos, destination_pos, destination_node, destination_inventory)
-		end
-	end,
-})
 
 -- This was tedious to populate and test
 local directions = {
@@ -433,8 +383,8 @@ local directions = {
 }
 
 minetest.register_abm({
-	nodenames = {"hopper:hopper_side"},
-	neighbors = hopper.neighbors["hopper:hopper_side"],
+	nodenames = {"hopper:hopper", "hopper:hopper_side"},
+	neighbors = hopper.neighbors,
 	interval = 1.0,
 	chance = 1,
 	action = function(pos, node, active_object_count, active_object_count_wider)
@@ -446,22 +396,27 @@ minetest.register_abm({
 		local area = VoxelArea:new{MinEdge=emin, MaxEdge=emax}
 		local data = vm:get_data()	
 
-		local direction = directions[vm:get_node_at(pos).param2]
-		local destination_pos = vector.add(direction["dst"], pos)
-		local source_pos = vector.add(direction["src"], pos)
+		local destination_pos, source_pos, destination_node, source_node, source_inventory, destination_inventory
 		
-		local destination_node = vm:get_node_at(destination_pos)
-		local source_node = vm:get_node_at(source_pos)
-		local source_inventory = hopper.targets["hopper:hopper_side"]["source"][source_node.name]
-		local destination_inventory = hopper.targets["hopper:hopper_side"]["destination"][destination_node.name]
-		
-		if source_inventory ~= nil then
-			take_item_from(pos, source_pos, source_node, source_inventory)
+		if node.name == "hopper:hopper_side" then
+			local direction = directions[vm:get_node_at(pos).param2]
+			destination_pos = vector.add(direction["dst"], pos)
+			source_pos = vector.add(direction["src"], pos)
+			destination_node = vm:get_node_at(destination_pos)
+			source_node = vm:get_node_at(source_pos)
+			source_inventory = hopper.targets["hopper:hopper_side"]["source"][source_node.name]
+			destination_inventory = hopper.targets["hopper:hopper_side"]["destination"][destination_node.name]
+		else
+			source_pos = {x=pos.x,y=pos.y+1,z=pos.z}
+			destination_pos = {x=pos.x,y=pos.y-1,z=pos.z}
+			destination_node = vm:get_node_at(destination_pos)
+			source_node = vm:get_node_at(source_pos)
+			source_inventory = hopper.targets["hopper:hopper"]["source"][source_node.name]
+			destination_inventory = hopper.targets["hopper:hopper"]["destination"][destination_node.name]
 		end
 		
-		if destination_inventory ~= nil then
-			send_item_to(pos, destination_pos, destination_node, destination_inventory)
-		end
+		take_item_from(pos, source_pos, source_node, source_inventory)
+		send_item_to(pos, destination_pos, destination_node, destination_inventory)
 	end,
 })
 
