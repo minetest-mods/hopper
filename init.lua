@@ -502,11 +502,17 @@ end
 
 -- add lucky blocks
 if minetest.get_modpath("lucky_block") then
-
-	lucky_block:add_blocks({
-		{"dro", {"hopper:hopper"}, 3},
-		{"nod", "default:lava_source", 1},
-	})
+	if single_craftable_item then
+		lucky_block:add_blocks({
+			{"dro", {"hopper:hopper_item"}, 3},
+			{"nod", "default:lava_source", 1},
+		})
+	else
+		lucky_block:add_blocks({
+			{"dro", {"hopper:hopper"}, 3},
+			{"nod", "default:lava_source", 1},
+		})
+	end	
 end
 
 print ("[MOD] Hopper loaded")
