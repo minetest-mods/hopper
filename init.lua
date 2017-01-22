@@ -69,7 +69,7 @@ hopper.add_destination("hopper:hopper", "wine:wine_barrel", "src")
 hopper.add_source("hopper:hopper_side", "wine:wine_barrel", "dst")
 hopper.add_destination("hopper:hopper_side", "wine:wine_barrel", "src")
 
-local hopper_long_desc = "Hopper to transfer items from the upper block's inventory to the lower block's inventory"
+local hopper_long_desc = "Hopper to transfer items between neighboring blocks' inventories"
 local hopper_usage = "Items are transfered from the block at the wide end of the hopper to the block at the narrow end of the hopper at a rate of one per second. Items can also be placed directly into the hopper's inventory, or they can be dropped into the space above a hopper and will be sucked into the hopper's inventory automatically.\n\n"
 if single_craftable_item then
 	hopper_usage = hopper_usage .. "Hopper blocks come in both 'vertical' and 'side' forms, but when in a player's inventory both are represented by a single generic item. The type of hopper block that will be placed when the player uses this item depends on what is pointed at - when the hopper item is pointed at the top or bottom face of a block a vertical hopper is placed, when aimed at the side of a block a side hopper is produced that connects to the clicked-on side.\n\n"
