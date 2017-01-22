@@ -1,0 +1,8 @@
+#Dimensions of the textures used, in pixels.
+hopper_texture_size (Hopper texture size) enum 16 16,32
+
+#When true, the hopper mod uses a single craftable item that auto-selects
+#a top hopper or side hopper depending on the context the player places it in.
+#When false, top hoppers and side hoppers are explicitly craftable as separate
+#items.
+hopper_single_craftable_item (Single craftable item) bool true
