@@ -48,6 +48,36 @@ minetest.register_node("hopper:hopper", {
 		inv:set_size("main", 4*4)
 	end,
 
+	on_place = function(itemstack, placer, pointed_thing)
+
+		local pos  = pointed_thing.under
+		local pos2 = pointed_thing.above
+		local x = pos.x - pos2.x
+		local z = pos.z - pos2.z
+
+		if x == -1 then
+			minetest.set_node(pos2, {name = "hopper:hopper_side", param2 = 0})
+
+		elseif x == 1 then
+			minetest.set_node(pos2, {name = "hopper:hopper_side", param2 = 2})
+
+		elseif z == -1 then
+			minetest.set_node(pos2, {name = "hopper:hopper_side", param2 = 3})
+
+		elseif z == 1 then
+			minetest.set_node(pos2, {name = "hopper:hopper_side", param2 = 1})
+
+		else
+			minetest.set_node(pos2, {name = "hopper:hopper"})
+		end
+
+		if not minetest.setting_getbool("creative_mode") then
+			itemstack:take_item()
+		end
+
+		return itemstack
+	end,
+
 	can_dig = function(pos, player)
 
 		local inv = minetest.get_meta(pos):get_inventory()
@@ -92,7 +122,7 @@ minetest.register_node("hopper:hopper", {
 -- side hopper
 minetest.register_node("hopper:hopper_side", {
 	description = "Side Hopper",
-	groups = {cracky = 3},
+	groups = {cracky = 3, not_in_creative_inventory = 1},
 	drawtype = "nodebox",
 	paramtype = "light",
 	paramtype2 = "facedir",
@@ -101,6 +131,7 @@ minetest.register_node("hopper:hopper_side", {
 		"hopper_side.png", "hopper_back.png", "hopper_back.png"
 	},
 	inventory_image = "hopper_side_inv.png",
+	drop = "hopper:hopper",
 	node_box = {
 		type = "fixed",
 		fixed = {
@@ -357,22 +388,6 @@ minetest.register_craft({
 	recipe = {
 		{"default:steel_ingot", "default:chest", "default:steel_ingot"},
 		{"", "default:steel_ingot", ""},
-	},
-})
-
--- hopper to side hopper recipe
-minetest.register_craft({
-	output = "hopper:hopper",
-	recipe = {
-		{"hopper:hopper_side"},
-	},
-})
-
--- side hopper back to hopper recipe
-minetest.register_craft({
-	output = "hopper:hopper_side",
-	recipe = {
-		{"hopper:hopper"},
 	},
 })
 
