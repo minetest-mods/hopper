@@ -1,4 +1,60 @@
 
+-- define global
+hopper = {}
+
+
+-- default containers ( from position [into hopper], from node, into node inventory )
+local containers = {
+
+	{"top", "hopper:hopper", "main"},
+	{"bottom", "hopper:hopper", "main"},
+	{"side", "hopper:hopper", "main"},
+	{"side", "hopper:hopper_side", "main"},
+
+	{"top", "default:chest", "main"},
+	{"bottom", "default:chest", "main"},
+	{"side", "default:chest", "main"},
+
+	{"top", "default:furnace", "dst"},
+	{"bottom", "default:furnace", "src"},
+	{"side", "default:furnace", "fuel"},
+
+	{"top", "default:furnace_active", "dst"},
+	{"bottom", "default:furnace_active", "src"},
+	{"side", "default:furnace_active", "fuel"},
+}
+
+-- global function to add new containers
+function hopper:add_container(list)
+
+	for n = 1, #list do
+		table.insert(containers, list[n])
+	end
+end
+
+
+-- protector redo mod support
+if minetest.get_modpath("protector") then
+
+	hopper:add_container({
+		{"top", "protector:chest", "main"},
+		{"bottom", "protector:chest", "main"},
+		{"side", "protector:chest", "main"},
+	})
+end
+
+
+-- wine mod support
+if minetest.get_modpath("wine") then
+
+	hopper:add_container({
+		{"top", "wine:wine_barrel", "dst"},
+		{"bottom", "wine:wine_barrel", "src"},
+		{"side", "wine:wine_barrel", "src"},
+	})
+end
+
+
 -- formspec
 local function get_hopper_formspec(pos)
 
@@ -16,6 +72,7 @@ local function get_hopper_formspec(pos)
 
 	return formspec
 end
+
 
 -- hopper
 minetest.register_node("hopper:hopper", {
@@ -43,7 +100,8 @@ minetest.register_node("hopper:hopper", {
 
 	on_construct = function(pos)
 
-		local inv = minetest.get_meta(pos):get_inventory()
+		local meta = minetest.get_meta(pos)
+		local inv = meta:get_inventory()
 
 		inv:set_size("main", 4*4)
 	end,
@@ -119,6 +177,7 @@ minetest.register_node("hopper:hopper", {
 	on_rotate = screwdriver.disallow,
 })
 
+
 -- side hopper
 minetest.register_node("hopper:hopper_side", {
 	description = "Side Hopper",
@@ -150,7 +209,8 @@ minetest.register_node("hopper:hopper_side", {
 
 	on_construct = function(pos)
 
-		local inv = minetest.get_meta(pos):get_inventory()
+		local meta = minetest.get_meta(pos)
+		local inv = meta:get_inventory()
 
 		inv:set_size("main", 4*4)
 	end,
@@ -196,6 +256,7 @@ minetest.register_node("hopper:hopper_side", {
 	on_rotate = screwdriver.rotate_simple,
 })
 
+
 -- suck in items on top of hopper
 minetest.register_abm({
 
@@ -236,8 +297,9 @@ minetest.register_abm({
 	end,
 })
 
+
 -- transfer function
-local transfer = function(src, srcpos, dst, dstpos, name)
+local transfer = function(src, srcpos, dst, dstpos)
 
 	-- source inventory
 	local inv = minetest.get_meta(srcpos):get_inventory()
@@ -275,28 +337,23 @@ local transfer = function(src, srcpos, dst, dstpos, name)
 			return
 		end
 	end
-
 end
+
 
 -- hopper workings
 minetest.register_abm({
 
 	label = "Hopper transfer",
 	nodenames = {"hopper:hopper", "hopper:hopper_side"},
-	neighbors = {
-		"default:chest","default:chest_locked","protector:chest",
-		"hopper:hopper","hopper:hopper_side","default:furnace",
-		"default:furnace_active", "wine:wine_barrel"
-	},
 	interval = 1.0,
 	chance = 1,
 	catch_up = false,
 
 	action = function(pos, node)
 
-		local front = {}
+		local front
 
-		-- if side hopper check which way it's facing
+		-- if side hopper check which way spout is facing
 		if node.name == "hopper:hopper_side" then
 
 			local face = minetest.get_node(pos).param2
@@ -320,67 +377,51 @@ minetest.register_abm({
 			front = {x = pos.x, y = pos.y - 1, z = pos.z}
 		end
 
-		-- what is above hopper and on other end of funnel
-		local a = minetest.get_node({x = pos.x, y = pos.y + 1, z = pos.z}).name
-		local b = minetest.get_node(front).name
+		-- get node above hopper
+		local top = minetest.get_node({x = pos.x, y = pos.y + 1, z = pos.z}).name
 
-		-- funnel input
+		-- get node at other end of spout
+		local out = minetest.get_node(front).name
 
-		if a == "default:chest"
-		or a == "default:chest_locked"
-		or a == "protector:chest"
-		or a == "hopper:hopper"
-		or a == "hopper:hopper_side" then
+		local where, nod, inv, def
 
-			transfer("main", {
-				x = pos.x,
-				y = pos.y + 1,
-				z = pos.z
-			}, "main", pos)
+		-- do for loop here for api check
+		for n = 1, #containers do
 
-		elseif a == "default:furnace"
-		or a == "default:furnace_active"
-		or a == "wine:wine_barrel" then
+			where = containers[n][1]
+			nod = containers[n][2]
+			inv = containers[n][3]
 
-			transfer("dst", {
-				x = pos.x,
-				y = pos.y + 1,
-				z = pos.z
-			}, "main", pos)
-		end
+			-- take from top node into hopper
+			if where == "top" and top == nod
+			and (node.name == "hopper:hopper" or node.name == "hopper:hopper_side") then
+--print ("-- top")
+				transfer(inv, {x = pos.x, y = pos.y + 1, z = pos.z}, "main", pos)
+				minetest.get_node_timer(
+					{x = pos.x, y = pos.y + 1, z = pos.z}):start(0.5)
+				return
 
-		-- spout output
+			-- take from hopper into bottom node
+			elseif where == "bottom" and out == nod
+			and node.name == "hopper:hopper" then
+--print ("-- bot")
+				transfer("main", pos, inv, front)
+				minetest.get_node_timer(front):start(0.5)
+				return
 
-		if b == "default:chest"
-		or b == "default:chest_locked"
-		or b == "protector:chest"
-		or b == "hopper:hopper"
-		or b == "hopper:hopper_side" then
+			-- take from side hopper into node
+			elseif where == "side" and out == nod
+			and node.name == "hopper:hopper_side" then
+--print ("-- sid")
+				transfer("main", pos, inv, front)
+				minetest.get_node_timer(front):start(0.5)
+				return
 
-			transfer("main", pos, "main", front)
-			
-		elseif b == "default:furnace"
-		or b == "default:furnace_active" then
-
-			if node.name == "hopper:hopper" then
-				-- hopper above to furnace source below
-				transfer("main", pos, "src", front)
-			else
-				-- hopper to furnace fuel beside
-				transfer("main", pos, "fuel", front)
 			end
-
-			-- re-start furnace timer
-			minetest.get_node_timer(front):start(0.5)--(1.0)
-
-		elseif b == "wine:wine_barrel" then
-
-			-- hopper to wine source beside
-			transfer("main", pos, "src", front)
 		end
-		
 	end,
 })
+
 
 -- hopper recipe
 minetest.register_craft({
@@ -391,9 +432,8 @@ minetest.register_craft({
 	},
 })
 
--- add lucky blocks
 
--- Hopper mod
+-- add lucky blocks
 if minetest.get_modpath("lucky_block") then
 
 	lucky_block:add_blocks({
@@ -401,5 +441,6 @@ if minetest.get_modpath("lucky_block") then
 		{"nod", "default:lava_source", 1},
 	})
 end
+
 
 print ("[MOD] Hopper loaded")
