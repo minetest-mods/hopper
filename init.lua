@@ -22,6 +22,9 @@ local containers = {
 	{"top", "default:furnace_active", "dst"},
 	{"bottom", "default:furnace_active", "src"},
 	{"side", "default:furnace_active", "fuel"},
+
+	{"bottom", "default:chest_locked", "main"},
+	{"side", "default:chest_locked", "main"},
 }
 
 -- global function to add new containers
@@ -392,7 +395,7 @@ minetest.register_abm({
 			nod = containers[n][2]
 			inv = containers[n][3]
 
-			-- take from top node into hopper
+			-- hopper on top into container below
 			if where == "top" and top == nod
 			and (node.name == "hopper:hopper" or node.name == "hopper:hopper_side") then
 --print ("-- top")
@@ -401,7 +404,7 @@ minetest.register_abm({
 					{x = pos.x, y = pos.y + 1, z = pos.z}):start(0.5)
 				return
 
-			-- take from hopper into bottom node
+			-- container on top into hopper below
 			elseif where == "bottom" and out == nod
 			and node.name == "hopper:hopper" then
 --print ("-- bot")
@@ -409,7 +412,7 @@ minetest.register_abm({
 				minetest.get_node_timer(front):start(0.5)
 				return
 
-			-- take from side hopper into node
+			-- side hopper into container beside
 			elseif where == "side" and out == nod
 			and node.name == "hopper:hopper_side" then
 --print ("-- sid")
