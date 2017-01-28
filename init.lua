@@ -1,15 +1,6 @@
 -- define global
 hopper = {}
 
-local hopper_long_desc = "Hopper to transfer items between neighboring blocks' inventories"
-local hopper_usage = "Items are transfered from the block at the wide end of the hopper to the block at the narrow end of the hopper at a rate of one per second. Items can also be placed directly into the hopper's inventory, or they can be dropped into the space above a hopper and will be sucked into the hopper's inventory automatically.\n\n"
-if single_craftable_item then
-	hopper_usage = hopper_usage .. "Hopper blocks come in both 'vertical' and 'side' forms, but when in a player's inventory both are represented by a single generic item. The type of hopper block that will be placed when the player uses this item depends on what is pointed at - when the hopper item is pointed at the top or bottom face of a block a vertical hopper is placed, when aimed at the side of a block a side hopper is produced that connects to the clicked-on side.\n\n"
-else
-	hopper_usage = hopper_usage .. "Hopper blocks come in both 'vertical' and 'side' forms. They can be interconverted between the two forms via the crafting grid.\n\n"
-end
-hopper_usage = hopper_usage .. "When used with furnaces, vertical hoppers inject items into the furnace's \"raw material\" inventory slot and side hoppers inject items into the furnace's \"fuel\" inventory slot.\n\nItems that cannot be placed in a target block's inventory will remain in the hopper."
-
 local texture_resolution = minetest.setting_get("hopper_texture_size")
 if texture_resolution == nil then
 	texture_resolution = "16"
@@ -19,6 +10,15 @@ local single_craftable_item = minetest.setting_getbool("hopper_single_craftable_
 if single_craftable_item == nil then
 	single_craftable_item = true
 end
+
+local hopper_long_desc = "Hopper to transfer items between neighboring blocks' inventories"
+local hopper_usage = "Items are transfered from the block at the wide end of the hopper to the block at the narrow end of the hopper at a rate of one per second. Items can also be placed directly into the hopper's inventory, or they can be dropped into the space above a hopper and will be sucked into the hopper's inventory automatically.\n\n"
+if single_craftable_item then
+	hopper_usage = hopper_usage .. "Hopper blocks come in both 'vertical' and 'side' forms, but when in a player's inventory both are represented by a single generic item. The type of hopper block that will be placed when the player uses this item depends on what is pointed at - when the hopper item is pointed at the top or bottom face of a block a vertical hopper is placed, when aimed at the side of a block a side hopper is produced that connects to the clicked-on side.\n\n"
+else
+	hopper_usage = hopper_usage .. "Hopper blocks come in both 'vertical' and 'side' forms. They can be interconverted between the two forms via the crafting grid.\n\n"
+end
+hopper_usage = hopper_usage .. "When used with furnaces, vertical hoppers inject items into the furnace's \"raw material\" inventory slot and side hoppers inject items into the furnace's \"fuel\" inventory slot.\n\nItems that cannot be placed in a target block's inventory will remain in the hopper."
 
 local containers = {}
 local neighbors = {}
