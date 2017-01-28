@@ -1,6 +1,14 @@
+-- define global
 hopper = {}
-hopper.targets = {}
-hopper.neighbors = {}
+
+local hopper_long_desc = "Hopper to transfer items between neighboring blocks' inventories"
+local hopper_usage = "Items are transfered from the block at the wide end of the hopper to the block at the narrow end of the hopper at a rate of one per second. Items can also be placed directly into the hopper's inventory, or they can be dropped into the space above a hopper and will be sucked into the hopper's inventory automatically.\n\n"
+if single_craftable_item then
+	hopper_usage = hopper_usage .. "Hopper blocks come in both 'vertical' and 'side' forms, but when in a player's inventory both are represented by a single generic item. The type of hopper block that will be placed when the player uses this item depends on what is pointed at - when the hopper item is pointed at the top or bottom face of a block a vertical hopper is placed, when aimed at the side of a block a side hopper is produced that connects to the clicked-on side.\n\n"
+else
+	hopper_usage = hopper_usage .. "Hopper blocks come in both 'vertical' and 'side' forms. They can be interconverted between the two forms via the crafting grid.\n\n"
+end
+hopper_usage = hopper_usage .. "When used with furnaces, vertical hoppers inject items into the furnace's \"raw material\" inventory slot and side hoppers inject items into the furnace's \"fuel\" inventory slot.\n\nItems that cannot be placed in a target block's inventory will remain in the hopper."
 
 local texture_resolution = minetest.setting_get("hopper_texture_size")
 if texture_resolution == nil then
@@ -12,71 +20,72 @@ if single_craftable_item == nil then
 	single_craftable_item = true
 end
 
-local function add_inventory(hopper_name, source_or_destination, target_node, target_inventory)
-	if hopper.targets[hopper_name] == nil then
-		hopper.targets[hopper_name] = {[source_or_destination] = {[target_node] = target_inventory}}
-	elseif hopper.targets[hopper_name][source_or_destination] == nil then
-		hopper.targets[hopper_name][source_or_destination] = {[target_node] = target_inventory}
-	else
-		hopper.targets[hopper_name][source_or_destination][target_node] = target_inventory
-	end
-	
-	for _, value in pairs(hopper.neighbors) do
-		if value == target_node then
-			return
+local containers = {}
+local neighbors = {}
+
+-- global function to add new containers
+function hopper:add_container(list)
+
+	for n = 1, #list do
+		table.insert(containers, list[n])
+		
+		local already_in_neighbors = false
+		for _, value in pairs(neighbors) do
+			if value == list[n][2] then
+				already_in_neighbors = true
+				break
+			end
+		end
+		if not already_in_neighbors then
+			table.insert(neighbors, list[n][2])
 		end
 	end
-	table.insert(hopper.neighbors, target_node)
 end
 
--- These two following methods are available for other mods to hook their nodes up to hoppers.
+-- default containers ( from position [into hopper], from node, into node inventory )
+hopper:add_container({
+	{"top", "hopper:hopper", "main"},
+	{"bottom", "hopper:hopper", "main"},
+	{"side", "hopper:hopper", "main"},
+	{"side", "hopper:hopper_side", "main"},
 
--- Adds a node type that hoppers will take items from when it's located in the hopper's source loication, and defines what inventory name the hopper takes items from
-hopper.add_source = function(hopper_name, source_node, source_inventory)
-	add_inventory(hopper_name, "source", source_node, source_inventory)
+	{"top", "default:chest", "main"},
+	{"bottom", "default:chest", "main"},
+	{"side", "default:chest", "main"},
+
+	{"top", "default:furnace", "dst"},
+	{"bottom", "default:furnace", "src"},
+	{"side", "default:furnace", "fuel"},
+
+	{"top", "default:furnace_active", "dst"},
+	{"bottom", "default:furnace_active", "src"},
+	{"side", "default:furnace_active", "fuel"},
+
+	{"bottom", "default:chest_locked", "main"},
+	{"side", "default:chest_locked", "main"},
+})
+
+-- protector redo mod support
+if minetest.get_modpath("protector") then
+
+	hopper:add_container({
+		{"top", "protector:chest", "main"},
+		{"bottom", "protector:chest", "main"},
+		{"side", "protector:chest", "main"},
+	})
 end
 
--- Adds a node type that hoppers will put items into when it's located in the hopper's destination loication, and defines what inventory name the hopper puts items into
-hopper.add_destination = function(hopper_name, destination_node, destination_inventory)
-	add_inventory(hopper_name, "destination", destination_node, destination_inventory)
+
+-- wine mod support
+if minetest.get_modpath("wine") then
+
+	hopper:add_container({
+		{"top", "wine:wine_barrel", "dst"},
+		{"bottom", "wine:wine_barrel", "src"},
+		{"side", "wine:wine_barrel", "src"},
+	})
 end
 
--- Build the default sources and destinations
-hopper.add_source("hopper:hopper", "default:chest", "main")
-hopper.add_source("hopper:hopper", "hopper:hopper", "main")
-hopper.add_source("hopper:hopper", "hopper:hopper_side", "main")
-hopper.add_source("hopper:hopper", "default:furnace", "dst")
-hopper.add_source("hopper:hopper", "default:furnace_active", "dst")
-hopper.add_destination("hopper:hopper", "default:chest", "main")
-hopper.add_destination("hopper:hopper", "hopper:hopper", "main")
-hopper.add_destination("hopper:hopper", "hopper:hopper_side", "main")
-hopper.add_destination("hopper:hopper", "default:furnace", "src")
-hopper.add_destination("hopper:hopper", "default:furnace_active", "src")
-hopper.add_source("hopper:hopper_side", "default:chest", "main")
-hopper.add_source("hopper:hopper_side", "hopper:hopper", "main")
-hopper.add_source("hopper:hopper_side", "hopper:hopper_side", "main")
-hopper.add_source("hopper:hopper_side", "default:furnace", "dst")
-hopper.add_source("hopper:hopper_side", "default:furnace_active", "dst")
-hopper.add_destination("hopper:hopper_side", "default:chest", "main")
-hopper.add_destination("hopper:hopper_side", "hopper:hopper", "main")
-hopper.add_destination("hopper:hopper_side", "hopper:hopper_side", "main")
-hopper.add_destination("hopper:hopper_side", "default:furnace", "fuel")
-hopper.add_destination("hopper:hopper_side", "default:furnace_active", "fuel")
-
--- Support wine mod.
-hopper.add_source("hopper:hopper", "wine:wine_barrel", "dst")
-hopper.add_destination("hopper:hopper", "wine:wine_barrel", "src")
-hopper.add_source("hopper:hopper_side", "wine:wine_barrel", "dst")
-hopper.add_destination("hopper:hopper_side", "wine:wine_barrel", "src")
-
-local hopper_long_desc = "Hopper to transfer items between neighboring blocks' inventories"
-local hopper_usage = "Items are transfered from the block at the wide end of the hopper to the block at the narrow end of the hopper at a rate of one per second. Items can also be placed directly into the hopper's inventory, or they can be dropped into the space above a hopper and will be sucked into the hopper's inventory automatically.\n\n"
-if single_craftable_item then
-	hopper_usage = hopper_usage .. "Hopper blocks come in both 'vertical' and 'side' forms, but when in a player's inventory both are represented by a single generic item. The type of hopper block that will be placed when the player uses this item depends on what is pointed at - when the hopper item is pointed at the top or bottom face of a block a vertical hopper is placed, when aimed at the side of a block a side hopper is produced that connects to the clicked-on side.\n\n"
-else
-	hopper_usage = hopper_usage .. "Hopper blocks come in both 'vertical' and 'side' forms. They can be interconverted between the two forms via the crafting grid.\n\n"
-end
-hopper_usage = hopper_usage .. "When used with furnaces, vertical hoppers inject items into the furnace's \"raw material\" inventory slot and side hoppers inject items into the furnace's \"fuel\" inventory slot.\n\nItems that cannot be placed in a target block's inventory will remain in the hopper."
 
 -- formspec
 local function get_hopper_formspec(pos)
@@ -96,22 +105,45 @@ local function get_hopper_formspec(pos)
 	return formspec
 end
 
-local hopper_drop
-local hopper_groups
-if single_craftable_item then
-	hopper_drop = "hopper:hopper_item"
-	hopper_groups = {cracky=3, not_in_creative_inventory = 1}
-else
-	hopper_drop = "hopper:hopper"
-	hopper_groups = {cracky=3}
+local hopper_on_place = function(itemstack, placer, pointed_thing, node_name)
+	local pos  = pointed_thing.under
+	local pos2 = pointed_thing.above
+	local x = pos.x - pos2.x
+	local z = pos.z - pos2.z
+
+	local returned_stack, success
+	-- unfortunately param2 overrides are needed for side hoppers even in the non-single-craftable-item case
+	-- because they are literally *side* hoppers - their spouts point to the side rather than to the front, so
+	-- the default item_place_node orientation code will not orient them pointing toward the selected surface.
+	if x == -1 and (single_craftable_item or node_name == "hopper:hopper_side") then
+		returned_stack, success = minetest.item_place_node(ItemStack("hopper:hopper_side"), placer, pointed_thing, 0)
+	elseif x == 1 and (single_craftable_item or node_name == "hopper:hopper_side") then
+		returned_stack, success = minetest.item_place_node(ItemStack("hopper:hopper_side"), placer, pointed_thing, 2)
+	elseif z == -1 and (single_craftable_item or node_name == "hopper:hopper_side")  then
+		returned_stack, success = minetest.item_place_node(ItemStack("hopper:hopper_side"), placer, pointed_thing, 3)
+	elseif z == 1 and (single_craftable_item or node_name == "hopper:hopper_side") then
+		returned_stack, success = minetest.item_place_node(ItemStack("hopper:hopper_side"), placer, pointed_thing, 1)
+	else
+		returned_stack, success = minetest.item_place_node(ItemStack(node_name), placer, pointed_thing)
+	end
+	
+	if success then
+		local meta = minetest.get_meta(pos2)
+		meta:set_string("placer", placer:get_player_name())
+		if not minetest.setting_getbool("creative_mode") then
+			itemstack:take_item()
+		end
+	end
+	return itemstack
 end
 
+-- hopper
 minetest.register_node("hopper:hopper", {
-	drop = hopper_drop,
+	drop = "hopper:hopper",
 	description = "Hopper",
 	_doc_items_longdesc = hopper_long_desc,
     _doc_items_usagehelp = hopper_usage,
-	groups = hopper_groups,
+	groups = {cracky=3},
 	drawtype = "nodebox",
 	paramtype = "light",
 	tiles = {"hopper_top_" .. texture_resolution .. ".png", "hopper_top_" .. texture_resolution .. ".png", "hopper_front_" .. texture_resolution .. ".png"},
@@ -130,13 +162,27 @@ minetest.register_node("hopper:hopper", {
 			{-0.15, -0.3, -0.15, 0.15, -0.5, 0.15},
 		},
 	},
+	selection_box = {
+		type = "fixed",
+		fixed = {
+			--funnel
+			{-0.5, 0.0, -0.5, 0.5, 0.5, 0.5},
+			--spout
+			{-0.3, -0.3, -0.3, 0.3, 0.0, 0.3},
+			{-0.15, -0.3, -0.15, 0.15, -0.5, 0.15},
+		},
+	},
 
 	on_construct = function(pos)
 		local inv = minetest.get_meta(pos):get_inventory()
 		inv:set_size("main", 4*4)
 	end,
 
-	can_dig = function(pos,player)
+	on_place = function(itemstack, placer, pointed_thing)
+		return hopper_on_place(itemstack, placer, pointed_thing, "hopper:hopper")
+	end,
+
+	can_dig = function(pos, player)
 		local inv = minetest.get_meta(pos):get_inventory()
 		return inv:is_empty("main")
 	end,
@@ -169,10 +215,13 @@ minetest.register_node("hopper:hopper", {
 })
 
 local hopper_side_drop
+local hopper_groups
 if single_craftable_item then
-	hopper_side_drop = "hopper:hopper_item"
+	hopper_side_drop = "hopper:hopper"
+	hopper_groups = {cracky=3, not_in_creative_inventory = 1}
 else
 	hopper_side_drop = "hopper:hopper_side"
+	hopper_groups = {cracky=3}
 end
 
 minetest.register_node("hopper:hopper_side", {
@@ -188,6 +237,7 @@ minetest.register_node("hopper:hopper_side", {
 		"hopper_top_" .. texture_resolution .. ".png", "hopper_bottom_" .. texture_resolution .. ".png", "hopper_back_" .. texture_resolution .. ".png",
 		"hopper_side_" .. texture_resolution .. ".png", "hopper_back_" .. texture_resolution .. ".png", "hopper_back_" .. texture_resolution .. ".png"
 	},
+	drop = hopper_side_drop,
 	node_box = {
 		type = "fixed",
 		fixed = {
@@ -203,12 +253,26 @@ minetest.register_node("hopper:hopper_side", {
 			{-0.7, -0.3, -0.15, 0.15, 0.0, 0.15},
 		},
 	},
-
+	selection_box = {
+		type = "fixed",
+		fixed = {
+			--funnel
+			{-0.5, 0.0, -0.5, 0.5, 0.5, 0.5},
+			--spout
+			{-0.3, -0.3, -0.3, 0.3, 0.0, 0.3},
+			{-0.7, -0.3, -0.15, 0.15, 0.0, 0.15},
+		},
+	},
+	
 	on_construct = function(pos)
 		local inv = minetest.get_meta(pos):get_inventory()
 		inv:set_size("main", 4*4)
 	end,
 
+	on_place = function(itemstack, placer, pointed_thing)
+		return hopper_on_place(itemstack, placer, pointed_thing, "hopper:hopper_side")
+	end,
+	
 	can_dig = function(pos,player)
 		local inv = minetest.get_meta(pos):get_inventory()
 		return inv:is_empty("main")
@@ -382,103 +446,63 @@ local directions = {
 	[23]={["src"]={x=0, y=-1, z=0},["dst"]={x=0, y=0, z=-1}},
 }
 
+-- hopper workings
 minetest.register_abm({
 	nodenames = {"hopper:hopper", "hopper:hopper_side"},
-	neighbors = hopper.neighbors,
+	neighbors = neighbors,
 	interval = 1.0,
 	chance = 1,
 	action = function(pos, node, active_object_count, active_object_count_wider)
 
-		local min = {x=pos.x-1,y=pos.y-1,z=pos.z-1}
-		local max = {x=pos.x+1,y=pos.y+1,z=pos.z+1}
-		local vm = minetest.get_voxel_manip()	
-		local emin, emax = vm:read_from_map(min,max)
-		local area = VoxelArea:new{MinEdge=emin, MaxEdge=emax}
-		local data = vm:get_data()	
-
-		local destination_pos, source_pos, destination_node, source_node, source_inventory, destination_inventory
-		
-		if node.name == "hopper:hopper_side" then
-			local direction = directions[vm:get_node_at(pos).param2]
-			destination_pos = vector.add(direction["dst"], pos)
-			source_pos = vector.add(direction["src"], pos)
-			destination_node = vm:get_node_at(destination_pos)
-			source_node = vm:get_node_at(source_pos)
-			source_inventory = hopper.targets["hopper:hopper_side"]["source"][source_node.name]
-			destination_inventory = hopper.targets["hopper:hopper_side"]["destination"][destination_node.name]
+		local source_pos, destination_pos
+		if node.name == "hopper:side_hopper" then
+			source_pos = vector.add(pos, directions[node.param2].src)
+			destination_pos = vector.add(pos, directions[node.param2].dst)
 		else
-			source_pos = {x=pos.x,y=pos.y+1,z=pos.z}
-			destination_pos = {x=pos.x,y=pos.y-1,z=pos.z}
-			destination_node = vm:get_node_at(destination_pos)
-			source_node = vm:get_node_at(source_pos)
-			source_inventory = hopper.targets["hopper:hopper"]["source"][source_node.name]
-			destination_inventory = hopper.targets["hopper:hopper"]["destination"][destination_node.name]
+			source_pos = {x=pos.x, y=pos.y+1, z=pos.z}
+			destination_pos = {x=pos.x, y=pos.y-1, z=pos.z}
 		end
 		
+		local source_node = minetest.get_node(source_pos)
+		local destination_node = minetest.get_node(destination_pos)
+		
+		local source_inventory, destination_inventory
+		for n = 1, #containers do
+			local relative_position = containers[n][1]
+			local target_type = containers[n][2]
+			local inventory_name = containers[n][3]
+			
+			if target_type == source_node.name and relative_position == "top" then
+				source_inventory = inventory_name
+			elseif target_type == destination_node.name then
+				if node.name == "hopper:side_hopper" and relative_position == "side" or 
+				  node.name == "hopper:hopper" and relative_position == "bottom" then
+					destination_inventory = inventory_name
+				end
+			end
+			
+			if source_inventory and destination_inventory then
+				break
+			end			
+		end	
+		
+		minetest.debug("hopper debug: ", source_node.name, source_inventory or "nil", destination_node.name, destination_inventory or "nil")
+	
 		take_item_from(pos, source_pos, source_node, source_inventory)
 		send_item_to(pos, destination_pos, destination_node, destination_inventory)
 	end,
 })
 
-minetest.register_craftitem("hopper:hopper_item", {
-	description = "Hopper",
-	_doc_items_longdesc = hopper_long_desc,
-    _doc_items_usagehelp = hopper_usage,
-	inventory_image = "hopper_item_" .. texture_resolution .. ".png",
-	on_place = function(itemstack, placer, pointed_thing)
-		local pos  = pointed_thing.under
-		local pos2 = pointed_thing.above
 
-		local x = pos.x - pos2.x
-		local y = pos.y - pos2.y
-		local z = pos.z - pos2.z
-		
-		local placed = false
-
-		if x == -1 then
-			minetest.set_node(pos2, {name="hopper:hopper_side", param2=0})
-			placed = true
-		elseif x == 1 then
-			minetest.set_node(pos2, {name="hopper:hopper_side", param2=2})
-			placed = true
-		elseif z == -1 then
-			minetest.set_node(pos2, {name="hopper:hopper_side", param2=3})
-			placed = true
-		elseif z == 1 then
-			minetest.set_node(pos2, {name="hopper:hopper_side", param2=1})
-			placed = true
-		else
-			minetest.set_node(pos2, {name="hopper:hopper"})
-			placed = true
-		end
-		if placed == true then
-			local meta = minetest.get_meta(pos2)
-			meta:set_string("placer", placer:get_player_name())
-			if not minetest.setting_getbool("creative_mode") then
-				itemstack:take_item()
-			end
-			return itemstack
-		end
-	end,
+minetest.register_craft({
+	output = "hopper:hopper",
+	recipe = {
+		{"default:steel_ingot","default:chest","default:steel_ingot"},
+		{"","default:steel_ingot",""},
+	}
 })
 
-if single_craftable_item then
-	minetest.register_craft({
-		output = "hopper:hopper_item",
-		recipe = {
-			{"default:steel_ingot","default:chest","default:steel_ingot"},
-			{"","default:steel_ingot",""},
-		}
-	})
-else
-	minetest.register_craft({
-		output = "hopper:hopper",
-		recipe = {
-			{"default:steel_ingot","default:chest","default:steel_ingot"},
-			{"","default:steel_ingot",""},
-		}
-	})
-
+if not single_craftable_item then
 	minetest.register_craft({
 		output = "hopper:hopper_side",
 		recipe = {
@@ -500,19 +524,14 @@ else
 	})
 end
 
+
 -- add lucky blocks
 if minetest.get_modpath("lucky_block") then
-	if single_craftable_item then
-		lucky_block:add_blocks({
-			{"dro", {"hopper:hopper_item"}, 3},
-			{"nod", "default:lava_source", 1},
-		})
-	else
-		lucky_block:add_blocks({
-			{"dro", {"hopper:hopper"}, 3},
-			{"nod", "default:lava_source", 1},
-		})
-	end	
+	lucky_block:add_blocks({
+		{"dro", {"hopper:hopper"}, 3},
+		{"nod", "default:lava_source", 1},
+	})
 end
+
 
 print ("[MOD] Hopper loaded")
