@@ -485,8 +485,6 @@ minetest.register_abm({
 				break
 			end			
 		end	
-		
-		minetest.debug("hopper debug: ", source_node.name, source_inventory or "nil", destination_node.name, destination_inventory or "nil")
 	
 		take_item_from(pos, source_pos, source_node, source_inventory)
 		send_item_to(pos, destination_pos, destination_node, destination_inventory)
