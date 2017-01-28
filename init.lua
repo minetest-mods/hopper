@@ -455,7 +455,7 @@ minetest.register_abm({
 	action = function(pos, node, active_object_count, active_object_count_wider)
 
 		local source_pos, destination_pos
-		if node.name == "hopper:side_hopper" then
+		if node.name == "hopper:hopper_side" then
 			source_pos = vector.add(pos, directions[node.param2].src)
 			destination_pos = vector.add(pos, directions[node.param2].dst)
 		else
@@ -475,7 +475,7 @@ minetest.register_abm({
 			if target_type == source_node.name and relative_position == "top" then
 				source_inventory = inventory_name
 			elseif target_type == destination_node.name then
-				if node.name == "hopper:side_hopper" and relative_position == "side" or 
+				if node.name == "hopper:hopper_side" and relative_position == "side" or 
 				  node.name == "hopper:hopper" and relative_position == "bottom" then
 					destination_inventory = inventory_name
 				end
