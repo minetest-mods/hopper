@@ -61,6 +61,7 @@ hopper:add_container({
 	{"bottom", "default:furnace_active", "src"},
 	{"side", "default:furnace_active", "fuel"},
 
+	{"top", "default:chest_locked", "main"},
 	{"bottom", "default:chest_locked", "main"},
 	{"side", "default:chest_locked", "main"},
 })
