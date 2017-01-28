@@ -124,6 +124,9 @@ local hopper_on_place = function(itemstack, placer, pointed_thing, node_name)
 	elseif z == 1 and (single_craftable_item or node_name == "hopper:hopper_side") then
 		returned_stack, success = minetest.item_place_node(ItemStack("hopper:hopper_side"), placer, pointed_thing, 1)
 	else
+		if single_craftable_item then
+			node_name = "hopper:hopper" -- For cases where single_craftable_item was set on an existing world and there are still side hoppers in player inventories
+		end
 		returned_stack, success = minetest.item_place_node(ItemStack(node_name), placer, pointed_thing)
 	end
 	
