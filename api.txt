@@ -33,3 +33,5 @@ hopper:add_container({
 We already have support for the wine barrel inside of the Wine mod and protected
 chests inside of Protector Redo, as well as default chests, furnaces and hoppers
 themselves.
+
+Note: Hoppers can transfer into locked chests but not take from them (yet).
