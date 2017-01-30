@@ -3,7 +3,7 @@
 hopper = {}
 
 
--- default containers ( from position [into hopper], from node, into node inventory )
+-- default containers
 local containers = {
 
 	{"top", "hopper:hopper", "main"},
@@ -395,7 +395,7 @@ minetest.register_abm({
 			nod = containers[n][2]
 			inv = containers[n][3]
 
-			-- hopper on top into container below
+			-- from top node into hopper below
 			if where == "top" and top == nod
 			and (node.name == "hopper:hopper" or node.name == "hopper:hopper_side") then
 --print ("-- top")
@@ -404,7 +404,7 @@ minetest.register_abm({
 					{x = pos.x, y = pos.y + 1, z = pos.z}):start(0.5)
 				return
 
-			-- container on top into hopper below
+			-- from top hopper into node below
 			elseif where == "bottom" and out == nod
 			and node.name == "hopper:hopper" then
 --print ("-- bot")

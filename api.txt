@@ -14,8 +14,9 @@ Make sure any mods using this function has 'hopper' in the depends.txt file.
 hopper:add_container({ {"where_from", "node_name", "inventory_name"} })
 
   'where_from' is a string telling the api that items are coming from either
-               the 'top' node into a hopper, going into the 'bottom' node from a
-               hopper or coming from a 'side' hopper into a container.
+               the 'top' node into a hopper below, going into the 'bottom' node
+               from the hopper above or coming from a 'side' hopper into the
+               node next door.
 
   'node_name"  is the name of the container itself (e.g. "default:chest")
 
@@ -24,8 +25,8 @@ hopper:add_container({ {"where_from", "node_name", "inventory_name"} })
 e.g.
 
 hopper:add_container({
-	{"top", "default:furnace", "dst"}, -- take cooked items from above into hopper
-	{"bottom", "default:furnace", "src"}, -- insert items below to be cooked from hopper
+	{"top", "default:furnace", "dst"}, -- take cooked items from above into hopper below
+	{"bottom", "default:furnace", "src"}, -- insert items below to be cooked from hopper above
 	{"side", "default:furnace", "fuel"}, -- replenish furnace fuel from hopper at side
 })
 
