@@ -79,7 +79,7 @@ end
 
 -- hopper
 minetest.register_node("hopper:hopper", {
-	description = "Hopper",
+	description = "Hopper (Place onto side of container for side-hopper)",
 	groups = {cracky = 3},
 	drawtype = "nodebox",
 	paramtype = "light",
@@ -111,25 +111,24 @@ minetest.register_node("hopper:hopper", {
 
 	on_place = function(itemstack, placer, pointed_thing)
 
-		local pos  = pointed_thing.under
-		local pos2 = pointed_thing.above
-		local x = pos.x - pos2.x
-		local z = pos.z - pos2.z
+		local pos = pointed_thing.above
+		local x = pointed_thing.under.x - pos.x
+		local z = pointed_thing.under.z - pos.z
 
 		if x == -1 then
-			minetest.set_node(pos2, {name = "hopper:hopper_side", param2 = 0})
+			minetest.set_node(pos, {name = "hopper:hopper_side", param2 = 0})
 
 		elseif x == 1 then
-			minetest.set_node(pos2, {name = "hopper:hopper_side", param2 = 2})
+			minetest.set_node(pos, {name = "hopper:hopper_side", param2 = 2})
 
 		elseif z == -1 then
-			minetest.set_node(pos2, {name = "hopper:hopper_side", param2 = 3})
+			minetest.set_node(pos, {name = "hopper:hopper_side", param2 = 3})
 
 		elseif z == 1 then
-			minetest.set_node(pos2, {name = "hopper:hopper_side", param2 = 1})
+			minetest.set_node(pos, {name = "hopper:hopper_side", param2 = 1})
 
 		else
-			minetest.set_node(pos2, {name = "hopper:hopper"})
+			minetest.set_node(pos, {name = "hopper:hopper"})
 		end
 
 		if not minetest.setting_getbool("creative_mode") then
@@ -183,7 +182,7 @@ minetest.register_node("hopper:hopper", {
 
 -- side hopper
 minetest.register_node("hopper:hopper_side", {
-	description = "Side Hopper",
+	description = "Side Hopper (Place into crafting to return normal Hopper)",
 	groups = {cracky = 3, not_in_creative_inventory = 1},
 	drawtype = "nodebox",
 	paramtype = "light",
@@ -260,47 +259,6 @@ minetest.register_node("hopper:hopper_side", {
 })
 
 
--- suck in items on top of hopper
-minetest.register_abm({
-
-	label = "Hopper suction",
-	nodenames = {"hopper:hopper", "hopper:hopper_side"},
-	interval = 1.0,
-	chance = 1,
-	catch_up = false,
-
-	action = function(pos, node)
-
-		local inv = minetest.get_meta(pos):get_inventory()
-		local posob
-
-		for _,object in pairs(minetest.get_objects_inside_radius(pos, 1)) do
-
-			if not object:is_player()
-			and object:get_luaentity()
-			and object:get_luaentity().name == "__builtin:item"
-			and inv
-			and inv:room_for_item("main",
-				ItemStack(object:get_luaentity().itemstring)) then
-
-				posob = object:getpos()
-
-				if math.abs(posob.x - pos.x) <= 0.5
-				and posob.y - pos.y <= 0.85
-				and posob.y - pos.y >= 0.3 then
-
-					inv:add_item("main",
-						ItemStack(object:get_luaentity().itemstring))
-
-					object:get_luaentity().itemstring = ""
-					object:remove()
-				end
-			end
-		end
-	end,
-})
-
-
 -- transfer function
 local transfer = function(src, srcpos, dst, dstpos)
 
@@ -346,13 +304,40 @@ end
 -- hopper workings
 minetest.register_abm({
 
-	label = "Hopper transfer",
+	label = "Hopper suction and transfer",
 	nodenames = {"hopper:hopper", "hopper:hopper_side"},
 	interval = 1.0,
 	chance = 1,
 	catch_up = false,
 
-	action = function(pos, node)
+	action = function(pos, node, active_object_count, active_object_count_wider)
+
+		-- do we have any entities nearby to suck into hopper?
+		if active_object_count > 0 then
+
+		  local inv = minetest.get_meta(pos):get_inventory()
+
+		  for _,object in pairs(minetest.get_objects_inside_radius(pos, 1)) do
+
+			if not object:is_player()
+			and object:get_luaentity()
+			and object:get_luaentity().name == "__builtin:item"
+			and inv
+			and inv:room_for_item("main",
+				ItemStack(object:get_luaentity().itemstring)) then
+
+				if object:getpos().y - pos.y >= 0.3 then
+
+					inv:add_item("main",
+						ItemStack(object:get_luaentity().itemstring))
+
+					object:get_luaentity().itemstring = ""
+					object:remove()
+				end
+			end
+		  end
+		end
+
 
 		local front
 
@@ -435,6 +420,12 @@ minetest.register_craft({
 	},
 })
 
+-- side hopper to hopper recipe
+minetest.register_craft({
+	type = "shapeless",
+	output = "hopper:hopper",
+	recipe = {"hopper:hopper_side"},
+})
 
 -- add lucky blocks
 if minetest.get_modpath("lucky_block") then
