@@ -3,6 +3,21 @@
 hopper = {}
 
 
+-- Intllib
+local S
+
+if minetest.get_modpath("intllib") then
+	S = intllib.Getter()
+else
+	S = function(s, a, ...) a = {a, ...}
+		return s:gsub("@(%d+)", function(n)
+			return a[tonumber(n)]
+		end)
+	end
+
+end
+
+
 -- default containers
 local containers = {
 
@@ -79,7 +94,7 @@ end
 
 -- hopper
 minetest.register_node("hopper:hopper", {
-	description = "Hopper (Place onto side of container for side-hopper)",
+	description = S("Hopper (Place onto sides for side-hopper)"),
 	groups = {cracky = 3},
 	drawtype = "nodebox",
 	paramtype = "light",
@@ -157,23 +172,20 @@ minetest.register_node("hopper:hopper", {
 
 	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
 
-		minetest.log("action", player:get_player_name()
-			.." moves stuff in hopper at "
-			..minetest.pos_to_string(pos))
+		minetest.log("action", S("@1 moves stuff in hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 
 	on_metadata_inventory_put = function(pos, listname, index, stack, player)
 
-		minetest.log("action", player:get_player_name()
-			.." moves stuff to hopper at "
-			..minetest.pos_to_string(pos))
+		minetest.log("action", S("@1 moves stuff to hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 
 	on_metadata_inventory_take = function(pos, listname, index, stack, player)
 
-		minetest.log("action", player:get_player_name()
-			.." takes stuff from hopper at "
-			..minetest.pos_to_string(pos))
+		minetest.log("action", S("@1 moves stuff from hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 
 	on_rotate = screwdriver.disallow,
@@ -182,7 +194,7 @@ minetest.register_node("hopper:hopper", {
 
 -- side hopper
 minetest.register_node("hopper:hopper_side", {
-	description = "Side Hopper (Place into crafting to return normal Hopper)",
+	description = S("Side Hopper (Place into crafting to return normal Hopper)"),
 	groups = {cracky = 3, not_in_creative_inventory = 1},
 	drawtype = "nodebox",
 	paramtype = "light",
@@ -236,23 +248,20 @@ minetest.register_node("hopper:hopper_side", {
 
 	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
 
-		minetest.log("action", player:get_player_name()
-			.." moves stuff in hopper at "
-			..minetest.pos_to_string(pos))
+		minetest.log("action", S("@1 moves stuff in hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 
 	on_metadata_inventory_put = function(pos, listname, index, stack, player)
 
-		minetest.log("action", player:get_player_name()
-			.." moves stuff to hopper at "
-			..minetest.pos_to_string(pos))
+		minetest.log("action", S("@1 moves stuff to hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 
 	on_metadata_inventory_take = function(pos, listname, index, stack, player)
 
-		minetest.log("action", player:get_player_name()
-			.." takes stuff from hopper at "
-			..minetest.pos_to_string(pos))
+		minetest.log("action", S("@1 moves stuff from hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 
 	on_rotate = screwdriver.rotate_simple,
@@ -437,4 +446,4 @@ if minetest.get_modpath("lucky_block") then
 end
 
 
-print ("[MOD] Hopper loaded")
+print (S("[MOD] Hopper loaded"))

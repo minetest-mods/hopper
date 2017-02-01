@@ -16,7 +16,8 @@ Change log:
 - 0.8 - Added Napiophelios' new textures and tweaked code
 - 0.9 - Added support for Wine mod's wine barrels
 - 1.0 - New furances do not work properly with hoppers so old reverted to abm furnaces
-- 1.1 - Hoppers now work with new node timer Furnaces.  Reduced Abm's and tidied code.
-- 1.2 - Added simple API so that hoppers can work with other containers.
+- 1.1 - Hoppers now work with new node timer Furnaces.  Reduced Abm's and tidied code
+- 1.2 - Added simple API so that hoppers can work with other containers
+- 1.3 - Tweaked code to use a single abm and added intllib support
 
 Lucky Blocks: 2
