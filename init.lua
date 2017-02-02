@@ -42,6 +42,19 @@ function hopper:add_container(list)
 	end
 end
 
+local S
+
+if minetest.get_modpath("intllib") then
+	S = intllib.Getter()
+else
+	S = function(s, a, ...) a = {a, ...}
+		return s:gsub("@(%d+)", function(n)
+			return a[tonumber(n)]
+		end)
+	end
+
+end
+
 -- default containers ( from position [into hopper], from node, into node inventory )
 hopper:add_container({
 	{"top", "hopper:hopper", "main"},
@@ -76,7 +89,6 @@ if minetest.get_modpath("protector") then
 	})
 end
 
-
 -- wine mod support
 if minetest.get_modpath("wine") then
 
@@ -86,7 +98,6 @@ if minetest.get_modpath("wine") then
 		{"side", "wine:wine_barrel", "src"},
 	})
 end
-
 
 -- formspec
 local function get_hopper_formspec(pos)
@@ -144,10 +155,10 @@ end
 -- hopper
 minetest.register_node("hopper:hopper", {
 	drop = "hopper:hopper",
-	description = "Hopper",
+	description = S("Hopper"),
 	_doc_items_longdesc = hopper_long_desc,
     _doc_items_usagehelp = hopper_usage,
-	groups = {cracky=3},
+	groups = {cracky = 3},
 	drawtype = "nodebox",
 	paramtype = "light",
 	tiles = {"hopper_top_" .. texture_resolution .. ".png", "hopper_top_" .. texture_resolution .. ".png", "hopper_front_" .. texture_resolution .. ".png"},
@@ -200,21 +211,18 @@ minetest.register_node("hopper:hopper", {
 	end,
 
 	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
-		minetest.log("action", player:get_player_name()
-			.." moves stuff in hopper at "
-			..minetest.pos_to_string(pos))
+		minetest.log("action", S("@1 moves stuff in hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 
-    on_metadata_inventory_put = function(pos, listname, index, stack, player)
-		minetest.log("action", player:get_player_name()
-			.." moves stuff to hopper at "
-			..minetest.pos_to_string(pos))
+	on_metadata_inventory_put = function(pos, listname, index, stack, player)
+		minetest.log("action", S("@1 moves stuff to hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 
-    on_metadata_inventory_take = function(pos, listname, index, stack, player)
-		minetest.log("action", player:get_player_name()
-			.." takes stuff from hopper at "
-			..minetest.pos_to_string(pos))
+	on_metadata_inventory_take = function(pos, listname, index, stack, player)
+		minetest.log("action", S("@1 moves stuff from hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 })
 
@@ -229,7 +237,7 @@ else
 end
 
 minetest.register_node("hopper:hopper_side", {
-	description = "Side Hopper",
+	description = S("Side Hopper"),
 	_doc_items_longdesc = hopper_long_desc,
     _doc_items_usagehelp = hopper_usage,
 	drop = hopper_side_drop,
@@ -291,21 +299,18 @@ minetest.register_node("hopper:hopper_side", {
 	end,
 
 	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
-		minetest.log("action", player:get_player_name()
-			.." moves stuff in hopper at "
-			..minetest.pos_to_string(pos))
+		minetest.log("action", S("@1 moves stuff in hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 
-    on_metadata_inventory_put = function(pos, listname, index, stack, player)
-		minetest.log("action", player:get_player_name()
-			.." moves stuff to hopper at "
-			..minetest.pos_to_string(pos))
+	on_metadata_inventory_put = function(pos, listname, index, stack, player)
+		minetest.log("action", S("@1 moves stuff to hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 
-    on_metadata_inventory_take = function(pos, listname, index, stack, player)
-		minetest.log("action", player:get_player_name()
-			.." takes stuff from hopper at "
-			..minetest.pos_to_string(pos))
+	on_metadata_inventory_take = function(pos, listname, index, stack, player)
+		minetest.log("action", S("@1 moves stuff from hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 })
 
@@ -452,12 +457,14 @@ local directions = {
 
 -- hopper workings
 minetest.register_abm({
+	label = "Hopper suction and transfer",
 	nodenames = {"hopper:hopper", "hopper:hopper_side"},
 	neighbors = neighbors,
 	interval = 1.0,
 	chance = 1,
-	action = function(pos, node, active_object_count, active_object_count_wider)
+	catch_up = false,
 
+	action = function(pos, node, active_object_count, active_object_count_wider)
 		local source_pos, destination_pos
 		if node.name == "hopper:hopper_side" then
 			source_pos = vector.add(pos, directions[node.param2].src)
@@ -526,7 +533,6 @@ if not single_craftable_item then
 	})
 end
 
-
 -- add lucky blocks
 if minetest.get_modpath("lucky_block") then
 	lucky_block:add_blocks({
@@ -535,5 +541,4 @@ if minetest.get_modpath("lucky_block") then
 	})
 end
 
-
-print ("[MOD] Hopper loaded")
+print (S("[MOD] Hopper loaded"))
