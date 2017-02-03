@@ -1,0 +1,89 @@
+# Internationalization template for Hopper mod.
+# Copyright (C) 2017
+# This file is distributed under the same license as the PACKAGE package.
+# FaceDeer
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-02-02 19:39-0700\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: init.lua:17
+msgid "Hopper to transfer items between neighboring blocks' inventories"
+msgstr ""
+
+#: init.lua:18
+msgid ""
+"Items are transfered from the block at the wide end of the hopper to the "
+"block at the narrow end of the hopper at a rate of one per second. Items can "
+"also be placed directly into the hopper's inventory, or they can be dropped "
+"into the space above a hopper and will be sucked into the hopper's inventory "
+"automatically.\n"
+"\n"
+msgstr ""
+
+#: init.lua:20
+msgid ""
+"Hopper blocks come in both 'vertical' and 'side' forms, but when in a "
+"player's inventory both are represented by a single generic item. The type "
+"of hopper block that will be placed when the player uses this item depends "
+"on what is pointed at - when the hopper item is pointed at the top or bottom "
+"face of a block a vertical hopper is placed, when aimed at the side of a "
+"block a side hopper is produced that connects to the clicked-on side.\n"
+"\n"
+msgstr ""
+
+#: init.lua:22
+msgid ""
+"Hopper blocks come in both 'vertical' and 'side' forms. They can be "
+"interconverted between the two forms via the crafting grid.\n"
+"\n"
+msgstr ""
+
+#: init.lua:24
+msgid ""
+"When used with furnaces, vertical hoppers inject items into the furnace's "
+"\"raw material\" inventory slot and side hoppers inject items into the "
+"furnace's \"fuel\" inventory slot.\n"
+"\n"
+"Items that cannot be placed in a target block's inventory will remain in the "
+"hopper.\n"
+"\n"
+"Hoppers have the same permissions as the player that placed them. Hoppers "
+"placed by you are allowed to take items from or put items into locked chests "
+"that you own, but hoppers placed by other players will be unable to do so. A "
+"hopper's own inventory is not not owner-locked, though, so you can use this "
+"as a way to allow other players to deposit items into your locked chests."
+msgstr ""
+
+#: init.lua:148
+msgid "Hopper"
+msgstr "Trichter"
+
+#: init.lua:204 init.lua:292
+msgid "@1 moves stuff in hopper at @2"
+msgstr "@1 bewegt Dinge in einem Trichter bei @2"
+
+#: init.lua:209 init.lua:297
+msgid "@1 moves stuff to hopper at @2"
+msgstr "@1 verlagert Dinge in einen Trichter bei @2"
+
+#: init.lua:214 init.lua:302
+msgid "@1 moves stuff from hopper at @2"
+msgstr "@1 nimmt Dinge aus einem Trichter bei @2"
+
+#: init.lua:230
+msgid "Side Hopper"
+msgstr "Seitentrichter"
+
+#: init.lua:534
+msgid "[MOD] Hopper loaded"
+msgstr "[MOD] Trichter geladen"
