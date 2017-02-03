@@ -1,9 +1,11 @@
 -- define global
 hopper = {}
 
+-- internationalization boilerplate
 local MP = minetest.get_modpath(minetest.get_current_modname())
 local S, NS = dofile(MP.."/intllib.lua")
 
+-- settings
 local texture_resolution = minetest.setting_get("hopper_texture_size")
 if texture_resolution == nil then
 	texture_resolution = "16"
@@ -14,6 +16,7 @@ if single_craftable_item == nil then
 	single_craftable_item = true
 end
 
+-- Documentation
 local hopper_long_desc = S("Hopper to transfer items between neighboring blocks' inventories")
 local hopper_usage = S("Items are transfered from the block at the wide end of the hopper to the block at the narrow end of the hopper at a rate of one per second. Items can also be placed directly into the hopper's inventory, or they can be dropped into the space above a hopper and will be sucked into the hopper's inventory automatically.\n\n")
 if single_craftable_item then
@@ -71,7 +74,6 @@ hopper:add_container({
 
 -- protector redo mod support
 if minetest.get_modpath("protector") then
-
 	hopper:add_container({
 		{"top", "protector:chest", "main"},
 		{"bottom", "protector:chest", "main"},
@@ -81,7 +83,6 @@ end
 
 -- wine mod support
 if minetest.get_modpath("wine") then
-
 	hopper:add_container({
 		{"top", "wine:wine_barrel", "dst"},
 		{"bottom", "wine:wine_barrel", "src"},
@@ -91,7 +92,6 @@ end
 
 -- formspec
 local function get_hopper_formspec(pos)
-
 	local spos = pos.x .. "," .. pos.y .. "," ..pos.z
 	local formspec =
 		"size[8,9]"
@@ -103,7 +103,6 @@ local function get_hopper_formspec(pos)
 		.. "list[current_player;main;0,6.08;8,3;8]"
 		.. "listring[nodemeta:" .. spos .. ";main]"
 		.. "listring[current_player;main]"
-
 	return formspec
 end
 
@@ -151,7 +150,11 @@ minetest.register_node("hopper:hopper", {
 	groups = {cracky = 3},
 	drawtype = "nodebox",
 	paramtype = "light",
-	tiles = {"hopper_top_" .. texture_resolution .. ".png", "hopper_top_" .. texture_resolution .. ".png", "hopper_front_" .. texture_resolution .. ".png"},
+	tiles = {
+		"hopper_top_" .. texture_resolution .. ".png",
+		"hopper_top_" .. texture_resolution .. ".png",
+		"hopper_front_" .. texture_resolution .. ".png"
+	},
 	node_box = {
 		type = "fixed",
 		fixed = {
@@ -236,8 +239,12 @@ minetest.register_node("hopper:hopper_side", {
 	paramtype = "light",
 	paramtype2 = "facedir",
 	tiles = {
-		"hopper_top_" .. texture_resolution .. ".png", "hopper_bottom_" .. texture_resolution .. ".png", "hopper_back_" .. texture_resolution .. ".png",
-		"hopper_side_" .. texture_resolution .. ".png", "hopper_back_" .. texture_resolution .. ".png", "hopper_back_" .. texture_resolution .. ".png"
+		"hopper_top_" .. texture_resolution .. ".png",
+		"hopper_bottom_" .. texture_resolution .. ".png",
+		"hopper_back_" .. texture_resolution .. ".png",
+		"hopper_side_" .. texture_resolution .. ".png",
+		"hopper_back_" .. texture_resolution .. ".png",
+		"hopper_back_" .. texture_resolution .. ".png"
 	},
 	drop = hopper_side_drop,
 	node_box = {
@@ -339,6 +346,7 @@ minetest.register_abm({
 	end,
 })
 
+-- Used to remove items from the target block and put it into the hopper's inventory
 local function take_item_from(hopper_pos, target_pos, target_node, target_inventory_name)
 	if target_inventory_name == nil then
 		return
@@ -377,6 +385,7 @@ local function take_item_from(hopper_pos, target_pos, target_node, target_invent
 	end
 end
 
+-- Used to put items from the hopper inventory into the target block
 local function send_item_to(hopper_pos, target_pos, target_node, target_inventory_name)
 	if target_inventory_name == nil then
 		return
@@ -405,7 +414,7 @@ local function send_item_to(hopper_pos, target_pos, target_node, target_inventor
 				  or placer == nil -- backwards compatibility, older versions of this mod didn't record who placed the hopper
 				  or target_def.allow_metadata_inventory_put(target_pos, target_inventory_name, i, stack_to_put, placer) > 0 then
 					hopper_inv:set_stack("main", i, stack)
-					--add to hopper or chest
+					--add to target node
 					target_inv:add_item(target_inventory_name, item)
 					if target_def.on_metadata_inventory_put ~= nil and placer ~= nil then
 						target_def.on_metadata_inventory_put(target_pos, target_inventory_name, i, stack_to_put, placer)
@@ -417,6 +426,7 @@ local function send_item_to(hopper_pos, target_pos, target_node, target_inventor
 	end
 end
 
+-- Used to convert side hopper facing into source and destination relative coordinates
 -- This was tedious to populate and test
 local directions = {
 	[0]={["src"]={x=0, y=1, z=0},["dst"]={x=-1, y=0, z=0}},
@@ -491,7 +501,6 @@ minetest.register_abm({
 		send_item_to(pos, destination_pos, destination_node, destination_inventory)
 	end,
 })
-
 
 minetest.register_craft({
 	output = "hopper:hopper",
