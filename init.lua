@@ -31,24 +31,30 @@ local neighbors = {}
 
 -- global function to add new containers
 function hopper:add_container(list)
-
-	for n = 1, #list do
-		table.insert(containers, list[n])
+	for _, entry in pairs(list) do
+		local node_info = containers[entry[2]]
+		if node_info == nil then
+			node_info = {}
+		end
+		node_info[entry[1]] = entry[3]
+		containers[entry[2]] = node_info
+		
+		-- result is a table of the form containers[target_node_name][relative_position][inventory_name]
 		
 		local already_in_neighbors = false
 		for _, value in pairs(neighbors) do
-			if value == list[n][2] then
+			if value == entry[2] then
 				already_in_neighbors = true
 				break
 			end
 		end
 		if not already_in_neighbors then
-			table.insert(neighbors, list[n][2])
+			table.insert(neighbors, entry[2])
 		end
 	end
 end
 
--- default containers ( from position [into hopper], from node, into node inventory )
+-- default containers ( relative position, target node, node inventory affected )
 hopper:add_container({
 	{"top", "hopper:hopper", "main"},
 	{"bottom", "hopper:hopper", "main"},
@@ -476,29 +482,18 @@ minetest.register_abm({
 		
 		local source_node = minetest.get_node(source_pos)
 		local destination_node = minetest.get_node(destination_pos)
+				
+		if containers[source_node.name] ~= nil then
+			take_item_from(pos, source_pos, source_node, containers[source_node.name]["top"])
+		end
 		
-		local source_inventory, destination_inventory
-		for n = 1, #containers do
-			local relative_position = containers[n][1]
-			local target_type = containers[n][2]
-			local inventory_name = containers[n][3]
-			
-			if target_type == source_node.name and relative_position == "top" then
-				source_inventory = inventory_name
-			elseif target_type == destination_node.name then
-				if node.name == "hopper:hopper_side" and relative_position == "side" or 
-				  node.name == "hopper:hopper" and relative_position == "bottom" then
-					destination_inventory = inventory_name
-				end
+		if containers[destination_node.name] ~= nil then
+			if node.name == "hopper:hopper_side" then
+				send_item_to(pos, destination_pos, destination_node, containers[destination_node.name]["side"])
+			else
+				send_item_to(pos, destination_pos, destination_node, containers[destination_node.name]["bottom"])
 			end
-			
-			if source_inventory and destination_inventory then
-				break
-			end			
-		end	
-	
-		take_item_from(pos, source_pos, source_node, source_inventory)
-		send_item_to(pos, destination_pos, destination_node, destination_inventory)
+		end
 	end,
 })
 
