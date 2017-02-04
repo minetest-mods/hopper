@@ -323,7 +323,11 @@ minetest.register_abm({
 	nodenames = {"hopper:hopper", "hopper:hopper_side"},
 	interval = 1.0,
 	chance = 1,
-	action = function(pos, node)
+	action = function(pos, node, active_object_count, active_object_count_wider)
+		if active_object_count_wider == 0 then
+			return
+		end
+		
 		local inv = minetest.get_meta(pos):get_inventory()
 		local posob
 
@@ -463,7 +467,7 @@ local directions = {
 
 -- hopper workings
 minetest.register_abm({
-	label = "Hopper suction and transfer",
+	label = "Hopper transfer",
 	nodenames = {"hopper:hopper", "hopper:hopper_side"},
 	neighbors = neighbors,
 	interval = 1.0,
