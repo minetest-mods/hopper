@@ -20,5 +20,6 @@ Change log:
 - 1.2 - Added simple API so that hoppers can work with other containers.
 - 1.3 - Hoppers now call on_metadata_inventory_put and on_metadata_inventory_take, triggering furnace timers via their standard callbacks. Updated side hopper rotation handling to allow it to function in any orientation. Added settings options to use 16-pixel or 32-pixel textures. Added settings option to allow explicit crafting of standard/side hoppers or to allow crafting of a single item that selects which type to use on place. Added in-game documentation via optional "doc" mod dependency
 - 1.4 - Added intllib support
+- 1.5 - Added chutes
 
 Lucky Blocks: 2
