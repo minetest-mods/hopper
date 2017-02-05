@@ -16,15 +16,8 @@ if single_craftable_item == nil then
 	single_craftable_item = true
 end
 
--- Documentation
-local hopper_long_desc = S("Hopper to transfer items between neighboring blocks' inventories")
-local hopper_usage = S("Items are transfered from the block at the wide end of the hopper to the block at the narrow end of the hopper at a rate of one per second. Items can also be placed directly into the hopper's inventory, or they can be dropped into the space above a hopper and will be sucked into the hopper's inventory automatically.\n\n")
-if single_craftable_item then
-	hopper_usage = hopper_usage .. S("Hopper blocks come in both 'vertical' and 'side' forms, but when in a player's inventory both are represented by a single generic item. The type of hopper block that will be placed when the player uses this item depends on what is pointed at - when the hopper item is pointed at the top or bottom face of a block a vertical hopper is placed, when aimed at the side of a block a side hopper is produced that connects to the clicked-on side.\n\n")
-else
-	hopper_usage = hopper_usage .. S("Hopper blocks come in both 'vertical' and 'side' forms. They can be interconverted between the two forms via the crafting grid.\n\n")
-end
-hopper_usage = hopper_usage .. S("When used with furnaces, hoppers inject items into the furnace's \"raw material\" inventory slot when the narrow end is attached to the top or bottom and inject items into the furnace's \"fuel\" inventory slot when attached to the furnace's side.\n\nItems that cannot be placed in a target block's inventory will remain in the hopper.\n\nHoppers have the same permissions as the player that placed them. Hoppers placed by you are allowed to take items from or put items into locked chests that you own, but hoppers placed by other players will be unable to do so. A hopper's own inventory is not not owner-locked, though, so you can use this as a way to allow other players to deposit items into your locked chests.")
+-------------------------------------------------------------------------------------------
+-- API
 
 local containers = {}
 local neighbors = {}
@@ -63,6 +56,9 @@ hopper:add_container({
 	{"bottom", "hopper:hopper", "main"},
 	{"side", "hopper:hopper", "main"},
 	{"side", "hopper:hopper_side", "main"},
+	
+	{"bottom", "hopper:chute", "main"},
+	{"side", "hopper:chute", "main"},
 
 	{"top", "default:chest", "main"},
 	{"bottom", "default:chest", "main"},
@@ -99,266 +95,23 @@ if minetest.get_modpath("wine") then
 	})
 end
 
--- formspec
-local function get_hopper_formspec(pos)
-	local spos = pos.x .. "," .. pos.y .. "," ..pos.z
-	local formspec =
-		"size[8,9]"
-		.. default.gui_bg
-		.. default.gui_bg_img
-		.. default.gui_slots
-		.. "list[nodemeta:" .. spos .. ";main;2,0.3;4,4;]"
-		.. "list[current_player;main;0,4.85;8,1;]"
-		.. "list[current_player;main;0,6.08;8,3;8]"
-		.. "listring[nodemeta:" .. spos .. ";main]"
-		.. "listring[current_player;main]"
-	return formspec
-end
+-------------------------------------------------------------------------------------------
+-- Documentation
 
-local hopper_on_place = function(itemstack, placer, pointed_thing, node_name)
-	local pos  = pointed_thing.under
-	local pos2 = pointed_thing.above
-	local x = pos.x - pos2.x
-	local z = pos.z - pos2.z
-
-	local returned_stack, success
-	-- unfortunately param2 overrides are needed for side hoppers even in the non-single-craftable-item case
-	-- because they are literally *side* hoppers - their spouts point to the side rather than to the front, so
-	-- the default item_place_node orientation code will not orient them pointing toward the selected surface.
-	if x == -1 and (single_craftable_item or node_name == "hopper:hopper_side") then
-		returned_stack, success = minetest.item_place_node(ItemStack("hopper:hopper_side"), placer, pointed_thing, 0)
-	elseif x == 1 and (single_craftable_item or node_name == "hopper:hopper_side") then
-		returned_stack, success = minetest.item_place_node(ItemStack("hopper:hopper_side"), placer, pointed_thing, 2)
-	elseif z == -1 and (single_craftable_item or node_name == "hopper:hopper_side")  then
-		returned_stack, success = minetest.item_place_node(ItemStack("hopper:hopper_side"), placer, pointed_thing, 3)
-	elseif z == 1 and (single_craftable_item or node_name == "hopper:hopper_side") then
-		returned_stack, success = minetest.item_place_node(ItemStack("hopper:hopper_side"), placer, pointed_thing, 1)
-	else
-		if single_craftable_item then
-			node_name = "hopper:hopper" -- For cases where single_craftable_item was set on an existing world and there are still side hoppers in player inventories
-		end
-		returned_stack, success = minetest.item_place_node(ItemStack(node_name), placer, pointed_thing)
-	end
-	
-	if success then
-		local meta = minetest.get_meta(pos2)
-		meta:set_string("placer", placer:get_player_name())
-		if not minetest.setting_getbool("creative_mode") then
-			itemstack:take_item()
-		end
-	end
-	return itemstack
-end
-
--- hopper
-minetest.register_node("hopper:hopper", {
-	drop = "hopper:hopper",
-	description = S("Hopper"),
-	_doc_items_longdesc = hopper_long_desc,
-    _doc_items_usagehelp = hopper_usage,
-	groups = {cracky = 3},
-	drawtype = "nodebox",
-	paramtype = "light",
-	paramtype2 = "facedir",
-	tiles = {
-		"hopper_top_" .. texture_resolution .. ".png",
-		"hopper_top_" .. texture_resolution .. ".png",
-		"hopper_front_" .. texture_resolution .. ".png"
-	},
-	node_box = {
-		type = "fixed",
-		fixed = {
-			--funnel walls
-			{-0.5, 0.0, 0.4, 0.5, 0.5, 0.5},
-			{0.4, 0.0, -0.5, 0.5, 0.5, 0.5},
-			{-0.5, 0.0, -0.5, -0.4, 0.5, 0.5},
-			{-0.5, 0.0, -0.5, 0.5, 0.5, -0.4},
-			--funnel base
-			{-0.5, 0.0, -0.5, 0.5, 0.1, 0.5},
-			--spout
-			{-0.3, -0.3, -0.3, 0.3, 0.0, 0.3},
-			{-0.15, -0.3, -0.15, 0.15, -0.5, 0.15},
-		},
-	},
-	selection_box = {
-		type = "fixed",
-		fixed = {
-			--funnel
-			{-0.5, 0.0, -0.5, 0.5, 0.5, 0.5},
-			--spout
-			{-0.3, -0.3, -0.3, 0.3, 0.0, 0.3},
-			{-0.15, -0.3, -0.15, 0.15, -0.5, 0.15},
-		},
-	},
-
-	on_construct = function(pos)
-		local inv = minetest.get_meta(pos):get_inventory()
-		inv:set_size("main", 4*4)
-	end,
-
-	on_place = function(itemstack, placer, pointed_thing)
-		return hopper_on_place(itemstack, placer, pointed_thing, "hopper:hopper")
-	end,
-
-	can_dig = function(pos, player)
-		local inv = minetest.get_meta(pos):get_inventory()
-		return inv:is_empty("main")
-	end,
-
-	on_rightclick = function(pos, node, clicker, itemstack)
-		if minetest.is_protected(pos, clicker:get_player_name()) then
-			return
-		end
-		minetest.show_formspec(clicker:get_player_name(),
-			"hopper:hopper", get_hopper_formspec(pos))
-	end,
-
-	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
-		minetest.log("action", S("@1 moves stuff in hopper at @2",
-			player:get_player_name(), minetest.pos_to_string(pos)))
-	end,
-
-	on_metadata_inventory_put = function(pos, listname, index, stack, player)
-		minetest.log("action", S("@1 moves stuff to hopper at @2",
-			player:get_player_name(), minetest.pos_to_string(pos)))
-	end,
-
-	on_metadata_inventory_take = function(pos, listname, index, stack, player)
-		minetest.log("action", S("@1 moves stuff from hopper at @2",
-			player:get_player_name(), minetest.pos_to_string(pos)))
-	end,
-})
-
-local hopper_side_drop
-local hopper_groups
+local hopper_long_desc = S("Hopper to transfer items between neighboring blocks' inventories.")
+local hopper_usage = S("Items are transfered from the block at the wide end of the hopper to the block at the narrow end of the hopper at a rate of one per second. Items can also be placed directly into the hopper's inventory, or they can be dropped into the space above a hopper and will be sucked into the hopper's inventory automatically.\n\n")
 if single_craftable_item then
-	hopper_side_drop = "hopper:hopper"
-	hopper_groups = {cracky=3, not_in_creative_inventory = 1}
+	hopper_usage = hopper_usage .. S("Hopper blocks come in both 'vertical' and 'side' forms, but when in a player's inventory both are represented by a single generic item. The type of hopper block that will be placed when the player uses this item depends on what is pointed at - when the hopper item is pointed at the top or bottom face of a block a vertical hopper is placed, when aimed at the side of a block a side hopper is produced that connects to the clicked-on side.\n\n")
 else
-	hopper_side_drop = "hopper:hopper_side"
-	hopper_groups = {cracky=3}
+	hopper_usage = hopper_usage .. S("Hopper blocks come in both 'vertical' and 'side' forms. They can be interconverted between the two forms via the crafting grid.\n\n")
 end
+hopper_usage = hopper_usage .. S("When used with furnaces, hoppers inject items into the furnace's \"raw material\" inventory slot when the narrow end is attached to the top or bottom and inject items into the furnace's \"fuel\" inventory slot when attached to the furnace's side.\n\nItems that cannot be placed in a target block's inventory will remain in the hopper.\n\nHoppers have the same permissions as the player that placed them. Hoppers placed by you are allowed to take items from or put items into locked chests that you own, but hoppers placed by other players will be unable to do so. A hopper's own inventory is not not owner-locked, though, so you can use this as a way to allow other players to deposit items into your locked chests.")
 
-minetest.register_node("hopper:hopper_side", {
-	description = S("Side Hopper"),
-	_doc_items_longdesc = hopper_long_desc,
-    _doc_items_usagehelp = hopper_usage,
-	drop = hopper_side_drop,
-	groups = hopper_groups,
-	drawtype = "nodebox",
-	paramtype = "light",
-	paramtype2 = "facedir",
-	tiles = {
-		"hopper_top_" .. texture_resolution .. ".png",
-		"hopper_bottom_" .. texture_resolution .. ".png",
-		"hopper_back_" .. texture_resolution .. ".png",
-		"hopper_side_" .. texture_resolution .. ".png",
-		"hopper_back_" .. texture_resolution .. ".png",
-		"hopper_back_" .. texture_resolution .. ".png"
-	},
-	drop = hopper_side_drop,
-	node_box = {
-		type = "fixed",
-		fixed = {
-			--funnel walls
-			{-0.5, 0.0, 0.4, 0.5, 0.5, 0.5},
-			{0.4, 0.0, -0.5, 0.5, 0.5, 0.5},
-			{-0.5, 0.0, -0.5, -0.4, 0.5, 0.5},
-			{-0.5, 0.0, -0.5, 0.5, 0.5, -0.4},
-			--funnel base
-			{-0.5, 0.0, -0.5, 0.5, 0.1, 0.5},
-			--spout
-			{-0.3, -0.3, -0.3, 0.3, 0.0, 0.3},
-			{-0.7, -0.3, -0.15, 0.15, 0.0, 0.15},
-		},
-	},
-	selection_box = {
-		type = "fixed",
-		fixed = {
-			--funnel
-			{-0.5, 0.0, -0.5, 0.5, 0.5, 0.5},
-			--spout
-			{-0.3, -0.3, -0.3, 0.3, 0.0, 0.3},
-			{-0.7, -0.3, -0.15, 0.15, 0.0, 0.15},
-		},
-	},
-	
-	on_construct = function(pos)
-		local inv = minetest.get_meta(pos):get_inventory()
-		inv:set_size("main", 4*4)
-	end,
+local chute_long_desc = S("A chute to transfer items over longer distances.")
+local chute_usage = S("Chutes operate much like hoppers but do not have their own intake capability. Items can only be inserted into a chute manually or by a hopper connected to a chute. They transfer items in the direction indicated by the arrow on their narrow segment at a rate of one item per second. They have a small buffer capacity, and any items that can't be placed into the target block's inventory will remain lodged in the chute's buffer until manuall removed or their destination becomes available.")
 
-	on_place = function(itemstack, placer, pointed_thing)
-		return hopper_on_place(itemstack, placer, pointed_thing, "hopper:hopper_side")
-	end,
-	
-	can_dig = function(pos,player)
-		local inv = minetest.get_meta(pos):get_inventory()
-		return inv:is_empty("main")
-	end,
-
-	on_rightclick = function(pos, node, clicker, itemstack)
-		if minetest.is_protected(pos, clicker:get_player_name()) then
-			return
-		end
-		minetest.show_formspec(clicker:get_player_name(),
-			"hopper:hopper_side", get_hopper_formspec(pos))
-	end,
-
-	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
-		minetest.log("action", S("@1 moves stuff in hopper at @2",
-			player:get_player_name(), minetest.pos_to_string(pos)))
-	end,
-
-	on_metadata_inventory_put = function(pos, listname, index, stack, player)
-		minetest.log("action", S("@1 moves stuff to hopper at @2",
-			player:get_player_name(), minetest.pos_to_string(pos)))
-	end,
-
-	on_metadata_inventory_take = function(pos, listname, index, stack, player)
-		minetest.log("action", S("@1 moves stuff from hopper at @2",
-			player:get_player_name(), minetest.pos_to_string(pos)))
-	end,
-})
-
--- suck in items on top of hopper
-minetest.register_abm({
-	label = "Hopper suction",
-	nodenames = {"hopper:hopper", "hopper:hopper_side"},
-	interval = 1.0,
-	chance = 1,
-	action = function(pos, node, active_object_count, active_object_count_wider)
-		if active_object_count_wider == 0 then
-			return
-		end
-		
-		local inv = minetest.get_meta(pos):get_inventory()
-		local posob
-
-		for _,object in pairs(minetest.get_objects_inside_radius(pos, 1)) do
-			if not object:is_player()
-			and object:get_luaentity()
-			and object:get_luaentity().name == "__builtin:item"
-			and inv
-			and inv:room_for_item("main",
-				ItemStack(object:get_luaentity().itemstring)) then
-
-				posob = object:getpos()
-
-				if math.abs(posob.x - pos.x) <= 0.5
-				and posob.y - pos.y <= 0.85
-				and posob.y - pos.y >= 0.3 then
-
-					inv:add_item("main",
-						ItemStack(object:get_luaentity().itemstring))
-
-					object:get_luaentity().itemstring = ""
-					object:remove()
-				end
-			end
-		end
-	end,
-})
+-------------------------------------------------------------------------------------------
+-- Inventory transfer functions
 
 -- Used to remove items from the target block and put it into the hopper's inventory
 local function take_item_from(hopper_pos, target_pos, target_node, target_inventory_name)
@@ -439,6 +192,386 @@ local function send_item_to(hopper_pos, target_pos, target_node, target_inventor
 		end
 	end
 end
+
+-------------------------------------------------------------------------------------------
+-- Nodes
+
+-- formspec
+local function get_hopper_formspec(pos)
+	local spos = pos.x .. "," .. pos.y .. "," ..pos.z
+	local formspec =
+		"size[8,9]"
+		.. default.gui_bg
+		.. default.gui_bg_img
+		.. default.gui_slots
+		.. "list[nodemeta:" .. spos .. ";main;2,0.3;4,4;]"
+		.. "list[current_player;main;0,4.85;8,1;]"
+		.. "list[current_player;main;0,6.08;8,3;8]"
+		.. "listring[nodemeta:" .. spos .. ";main]"
+		.. "listring[current_player;main]"
+	return formspec
+end
+
+local hopper_on_place = function(itemstack, placer, pointed_thing, node_name)
+	local pos  = pointed_thing.under
+	local pos2 = pointed_thing.above
+	local x = pos.x - pos2.x
+	local z = pos.z - pos2.z
+
+	local returned_stack, success
+	-- unfortunately param2 overrides are needed for side hoppers even in the non-single-craftable-item case
+	-- because they are literally *side* hoppers - their spouts point to the side rather than to the front, so
+	-- the default item_place_node orientation code will not orient them pointing toward the selected surface.
+	if x == -1 and (single_craftable_item or node_name == "hopper:hopper_side") then
+		returned_stack, success = minetest.item_place_node(ItemStack("hopper:hopper_side"), placer, pointed_thing, 0)
+	elseif x == 1 and (single_craftable_item or node_name == "hopper:hopper_side") then
+		returned_stack, success = minetest.item_place_node(ItemStack("hopper:hopper_side"), placer, pointed_thing, 2)
+	elseif z == -1 and (single_craftable_item or node_name == "hopper:hopper_side")  then
+		returned_stack, success = minetest.item_place_node(ItemStack("hopper:hopper_side"), placer, pointed_thing, 3)
+	elseif z == 1 and (single_craftable_item or node_name == "hopper:hopper_side") then
+		returned_stack, success = minetest.item_place_node(ItemStack("hopper:hopper_side"), placer, pointed_thing, 1)
+	else
+		if single_craftable_item then
+			node_name = "hopper:hopper" -- For cases where single_craftable_item was set on an existing world and there are still side hoppers in player inventories
+		end
+		returned_stack, success = minetest.item_place_node(ItemStack(node_name), placer, pointed_thing)
+	end
+	
+	if success then
+		local meta = minetest.get_meta(pos2)
+		meta:set_string("placer", placer:get_player_name())
+		if not minetest.setting_getbool("creative_mode") then
+			itemstack:take_item()
+		end
+	end
+	return itemstack
+end
+
+-------------------------------------------------------------------------------------------
+-- Hoppers
+
+minetest.register_node("hopper:hopper", {
+	drop = "hopper:hopper",
+	description = S("Hopper"),
+	_doc_items_longdesc = hopper_long_desc,
+    _doc_items_usagehelp = hopper_usage,
+	groups = {cracky = 3},
+	drawtype = "nodebox",
+	paramtype = "light",
+	paramtype2 = "facedir",
+	tiles = {
+		"hopper_top_" .. texture_resolution .. ".png",
+		"hopper_top_" .. texture_resolution .. ".png",
+		"hopper_front_" .. texture_resolution .. ".png"
+	},
+	node_box = {
+		type = "fixed",
+		fixed = {
+			--funnel walls
+			{-0.5, 0.0, 0.4, 0.5, 0.5, 0.5},
+			{0.4, 0.0, -0.5, 0.5, 0.5, 0.5},
+			{-0.5, 0.0, -0.5, -0.4, 0.5, 0.5},
+			{-0.5, 0.0, -0.5, 0.5, 0.5, -0.4},
+			--funnel base
+			{-0.5, 0.0, -0.5, 0.5, 0.1, 0.5},
+			--spout
+			{-0.3, -0.3, -0.3, 0.3, 0.0, 0.3},
+			{-0.15, -0.3, -0.15, 0.15, -0.7, 0.15},
+		},
+	},
+	selection_box = {
+		type = "fixed",
+		fixed = {
+			--funnel
+			{-0.5, 0.0, -0.5, 0.5, 0.5, 0.5},
+			--spout
+			{-0.3, -0.3, -0.3, 0.3, 0.0, 0.3},
+			{-0.15, -0.3, -0.15, 0.15, -0.7, 0.15},
+		},
+	},
+
+	on_construct = function(pos)
+		local inv = minetest.get_meta(pos):get_inventory()
+		inv:set_size("main", 4*4)
+	end,
+
+	on_place = function(itemstack, placer, pointed_thing)
+		return hopper_on_place(itemstack, placer, pointed_thing, "hopper:hopper")
+	end,
+
+	can_dig = function(pos, player)
+		local inv = minetest.get_meta(pos):get_inventory()
+		return inv:is_empty("main")
+	end,
+
+	on_rightclick = function(pos, node, clicker, itemstack)
+		if minetest.is_protected(pos, clicker:get_player_name()) then
+			return
+		end
+		minetest.show_formspec(clicker:get_player_name(),
+			"hopper:hopper", get_hopper_formspec(pos))
+	end,
+
+	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
+		minetest.log("action", S("@1 moves stuff in hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
+	end,
+
+	on_metadata_inventory_put = function(pos, listname, index, stack, player)
+		minetest.log("action", S("@1 moves stuff to hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
+	end,
+
+	on_metadata_inventory_take = function(pos, listname, index, stack, player)
+		minetest.log("action", S("@1 moves stuff from hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
+	end,
+})
+
+local hopper_side_drop
+local hopper_groups
+if single_craftable_item then
+	hopper_side_drop = "hopper:hopper"
+	hopper_groups = {cracky=3, not_in_creative_inventory = 1}
+else
+	hopper_side_drop = "hopper:hopper_side"
+	hopper_groups = {cracky=3}
+end
+
+minetest.register_node("hopper:hopper_side", {
+	description = S("Side Hopper"),
+	_doc_items_longdesc = hopper_long_desc,
+    _doc_items_usagehelp = hopper_usage,
+	drop = hopper_side_drop,
+	groups = hopper_groups,
+	drawtype = "nodebox",
+	paramtype = "light",
+	paramtype2 = "facedir",
+	tiles = {
+		"hopper_top_" .. texture_resolution .. ".png",
+		"hopper_bottom_" .. texture_resolution .. ".png",
+		"hopper_back_" .. texture_resolution .. ".png",
+		"hopper_side_" .. texture_resolution .. ".png",
+		"hopper_back_" .. texture_resolution .. ".png",
+		"hopper_back_" .. texture_resolution .. ".png"
+	},
+	node_box = {
+		type = "fixed",
+		fixed = {
+			--funnel walls
+			{-0.5, 0.0, 0.4, 0.5, 0.5, 0.5},
+			{0.4, 0.0, -0.5, 0.5, 0.5, 0.5},
+			{-0.5, 0.0, -0.5, -0.4, 0.5, 0.5},
+			{-0.5, 0.0, -0.5, 0.5, 0.5, -0.4},
+			--funnel base
+			{-0.5, 0.0, -0.5, 0.5, 0.1, 0.5},
+			--spout
+			{-0.3, -0.3, -0.3, 0.3, 0.0, 0.3},
+			{-0.7, -0.3, -0.15, 0.15, 0.0, 0.15},
+		},
+	},
+	selection_box = {
+		type = "fixed",
+		fixed = {
+			--funnel
+			{-0.5, 0.0, -0.5, 0.5, 0.5, 0.5},
+			--spout
+			{-0.3, -0.3, -0.3, 0.3, 0.0, 0.3},
+			{-0.7, -0.3, -0.15, 0.15, 0.0, 0.15},
+		},
+	},
+	
+	on_construct = function(pos)
+		local inv = minetest.get_meta(pos):get_inventory()
+		inv:set_size("main", 4*4)
+	end,
+
+	on_place = function(itemstack, placer, pointed_thing)
+		return hopper_on_place(itemstack, placer, pointed_thing, "hopper:hopper_side")
+	end,
+	
+	can_dig = function(pos,player)
+		local inv = minetest.get_meta(pos):get_inventory()
+		return inv:is_empty("main")
+	end,
+
+	on_rightclick = function(pos, node, clicker, itemstack)
+		if minetest.is_protected(pos, clicker:get_player_name()) then
+			return
+		end
+		minetest.show_formspec(clicker:get_player_name(),
+			"hopper:hopper_side", get_hopper_formspec(pos))
+	end,
+
+	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
+		minetest.log("action", S("@1 moves stuff in hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
+	end,
+
+	on_metadata_inventory_put = function(pos, listname, index, stack, player)
+		minetest.log("action", S("@1 moves stuff to hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
+	end,
+
+	on_metadata_inventory_take = function(pos, listname, index, stack, player)
+		minetest.log("action", S("@1 moves stuff from hopper at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
+	end,
+})
+
+local function get_chute_formspec(pos)
+	local spos = pos.x .. "," .. pos.y .. "," ..pos.z
+	local formspec =
+		"size[8,7]"
+		.. default.gui_bg
+		.. default.gui_bg_img
+		.. default.gui_slots
+		.. "list[nodemeta:" .. spos .. ";main;3,0.3;2,2;]"
+		.. "list[current_player;main;0,2.85;8,1;]"
+		.. "list[current_player;main;0,4.08;8,3;8]"
+		.. "listring[nodemeta:" .. spos .. ";main]"
+		.. "listring[current_player;main]"
+	return formspec
+end
+
+-------------------------------------------------------------------------------------------
+-- Chute
+
+minetest.register_node("hopper:chute", {
+	description = S("Hopper Chute"),
+	_doc_items_longdesc = chute_long_desc,
+    _doc_items_usagehelp = chute_usage,
+	drop = "hopper:chute",
+	groups = {cracky = 3},
+	drawtype = "nodebox",
+	paramtype = "light",
+	paramtype2 = "facedir",
+	tiles = {
+		"hopper_bottom_" .. texture_resolution .. ".png^hopper_chute_arrow_" .. texture_resolution .. ".png",
+		"hopper_bottom_" .. texture_resolution .. ".png^(hopper_chute_arrow_" .. texture_resolution .. ".png^[transformR180)",
+		"hopper_bottom_" .. texture_resolution .. ".png^(hopper_chute_arrow_" .. texture_resolution .. ".png^[transformR270)",
+		"hopper_bottom_" .. texture_resolution .. ".png^(hopper_chute_arrow_" .. texture_resolution .. ".png^[transformR90)",
+		"hopper_top_" .. texture_resolution .. ".png",
+		"hopper_bottom_" .. texture_resolution .. ".png"
+	},
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{-0.3, -0.3, -0.3, 0.3, 0.3, 0.3},
+			{-0.2, -0.2, 0.3, 0.2, 0.2, 0.7},
+		},
+	},
+	
+	on_construct = function(pos)
+		local inv = minetest.get_meta(pos):get_inventory()
+		inv:set_size("main", 2*2)
+	end,
+
+	on_place = function(itemstack, placer, pointed_thing, node_name)
+		local pos  = pointed_thing.under
+		local pos2 = pointed_thing.above
+		local x = pos.x - pos2.x
+		local z = pos.z - pos2.z
+
+		local returned_stack, success = minetest.item_place_node(itemstack, placer, pointed_thing)
+		if success then
+			local meta = minetest.get_meta(pos2)
+			meta:set_string("placer", placer:get_player_name())
+		end
+		return returned_stack
+	end,
+	
+	can_dig = function(pos,player)
+		local inv = minetest.get_meta(pos):get_inventory()
+		return inv:is_empty("main")
+	end,
+
+	on_rightclick = function(pos, node, clicker, itemstack)
+		if minetest.is_protected(pos, clicker:get_player_name()) then
+			return
+		end
+		minetest.show_formspec(clicker:get_player_name(),
+			"hopper:chute", get_chute_formspec(pos))
+	end,
+
+	on_metadata_inventory_put = function(pos, listname, index, stack, player)
+		minetest.log("action", S("@1 moves stuff to chute at @2",
+			player:get_player_name(), minetest.pos_to_string(pos)))
+
+		local timer = minetest.get_node_timer(pos)
+		if not timer:is_started() then
+			timer:start(1)
+		end		
+	end,
+
+	on_timer = function(pos, elapsed)
+		local meta = minetest.get_meta(pos);
+		local inv = meta:get_inventory()
+
+		local node = minetest.get_node(pos)
+		local dir = minetest.facedir_to_dir(node.param2)
+		local destination_pos = vector.add(pos, dir)
+		local output_direction
+		if dir.y == 0 then
+			output_direction = "horizontal"
+		end
+		
+		local destination_node = minetest.get_node(destination_pos)
+		if containers[destination_node.name] ~= nil then
+			if output_direction == "horizontal" then
+				send_item_to(pos, destination_pos, destination_node, containers[destination_node.name]["side"])
+			else
+				send_item_to(pos, destination_pos, destination_node, containers[destination_node.name]["bottom"])
+			end
+		end
+		
+		if not inv:is_empty("main") then
+			minetest.get_node_timer(pos):start(1)
+		end
+	end,
+})
+
+-------------------------------------------------------------------------------------------
+-- ABMs
+
+-- suck in items on top of hopper
+minetest.register_abm({
+	label = "Hopper suction",
+	nodenames = {"hopper:hopper", "hopper:hopper_side"},
+	interval = 1.0,
+	chance = 1,
+	action = function(pos, node, active_object_count, active_object_count_wider)
+		if active_object_count_wider == 0 then
+			return
+		end
+		
+		local inv = minetest.get_meta(pos):get_inventory()
+		local posob
+
+		for _,object in pairs(minetest.get_objects_inside_radius(pos, 1)) do
+			if not object:is_player()
+			and object:get_luaentity()
+			and object:get_luaentity().name == "__builtin:item"
+			and inv
+			and inv:room_for_item("main",
+				ItemStack(object:get_luaentity().itemstring)) then
+
+				posob = object:getpos()
+
+				if math.abs(posob.x - pos.x) <= 0.5
+				and posob.y - pos.y <= 0.85
+				and posob.y - pos.y >= 0.3 then
+
+					inv:add_item("main",
+						ItemStack(object:get_luaentity().itemstring))
+
+					object:get_luaentity().itemstring = ""
+					object:remove()
+				end
+			end
+		end
+	end,
+})
 
 -- Used to convert side hopper facing into source and destination relative coordinates
 -- This was tedious to populate and test
@@ -521,11 +654,21 @@ minetest.register_abm({
 	end,
 })
 
+-------------------------------------------------------------------------------------------
+-- Crafts
+
 minetest.register_craft({
 	output = "hopper:hopper",
 	recipe = {
 		{"default:steel_ingot","default:chest","default:steel_ingot"},
 		{"","default:steel_ingot",""},
+	}
+})
+
+minetest.register_craft({
+	output = "hopper:chute",
+	recipe = {
+		{"default:steel_ingot","default:chest","default:steel_ingot"},
 	}
 })
 

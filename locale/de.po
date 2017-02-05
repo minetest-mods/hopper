@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-02 19:39-0700\n"
+"POT-Creation-Date: 2017-02-04 21:26-0700\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -16,11 +16,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: init.lua:17
-msgid "Hopper to transfer items between neighboring blocks' inventories"
+#: init.lua:101
+msgid "Hopper to transfer items between neighboring blocks' inventories."
 msgstr ""
 
-#: init.lua:18
+#: init.lua:102
 msgid ""
 "Items are transfered from the block at the wide end of the hopper to the "
 "block at the narrow end of the hopper at a rate of one per second. Items can "
@@ -30,7 +30,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: init.lua:20
+#: init.lua:104
 msgid ""
 "Hopper blocks come in both 'vertical' and 'side' forms, but when in a "
 "player's inventory both are represented by a single generic item. The type "
@@ -41,14 +41,14 @@ msgid ""
 "\n"
 msgstr ""
 
-#: init.lua:22
+#: init.lua:106
 msgid ""
 "Hopper blocks come in both 'vertical' and 'side' forms. They can be "
 "interconverted between the two forms via the crafting grid.\n"
 "\n"
 msgstr ""
 
-#: init.lua:24
+#: init.lua:108
 msgid ""
 "When used with furnaces, hoppers inject items into the furnace's \"raw "
 "material\" inventory slot when the narrow end is attached to the top or "
@@ -65,26 +65,51 @@ msgid ""
 "as a way to allow other players to deposit items into your locked chests."
 msgstr ""
 
-#: init.lua:148
+#: init.lua:110
+msgid "A chute to transfer items over longer distances."
+msgstr ""
+
+#: init.lua:111
+msgid ""
+"Chutes operate much like hoppers but do not have their own intake "
+"capability. Items can only be inserted into a chute manually or by a hopper "
+"connected to a chute. They transfer items in the direction indicated by the "
+"arrow on their narrow segment at a rate of one item per second. They have a "
+"small buffer capacity, and any items that can't be placed into the target "
+"block's inventory will remain lodged in the chute's buffer until manuall "
+"removed or their destination becomes available."
+msgstr ""
+
+#: init.lua:255
 msgid "Hopper"
 msgstr "Trichter"
 
-#: init.lua:204 init.lua:292
+#: init.lua:316 init.lua:407
 msgid "@1 moves stuff in hopper at @2"
 msgstr "@1 bewegt Dinge in einem Trichter bei @2"
 
-#: init.lua:209 init.lua:297
+#: init.lua:321 init.lua:412
 msgid "@1 moves stuff to hopper at @2"
 msgstr "@1 verlagert Dinge in einen Trichter bei @2"
 
-#: init.lua:214 init.lua:302
+#: init.lua:326 init.lua:417
 msgid "@1 moves stuff from hopper at @2"
 msgstr "@1 nimmt Dinge aus einem Trichter bei @2"
 
-#: init.lua:230
+#: init.lua:342
 msgid "Side Hopper"
 msgstr "Seitentrichter"
 
-#: init.lua:534
+#: init.lua:441
+#, fuzzy
+msgid "Hopper Chute"
+msgstr "Trichter"
+
+#: init.lua:498
+#, fuzzy
+msgid "@1 moves stuff to chute at @2"
+msgstr "@1 verlagert Dinge in einen Trichter bei @2"
+
+#: init.lua:705
 msgid "[MOD] Hopper loaded"
 msgstr "[MOD] Trichter geladen"
