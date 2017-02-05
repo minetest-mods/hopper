@@ -24,7 +24,7 @@ if single_craftable_item then
 else
 	hopper_usage = hopper_usage .. S("Hopper blocks come in both 'vertical' and 'side' forms. They can be interconverted between the two forms via the crafting grid.\n\n")
 end
-hopper_usage = hopper_usage .. S("When used with furnaces, vertical hoppers inject items into the furnace's \"raw material\" inventory slot and side hoppers inject items into the furnace's \"fuel\" inventory slot.\n\nItems that cannot be placed in a target block's inventory will remain in the hopper.\n\nHoppers have the same permissions as the player that placed them. Hoppers placed by you are allowed to take items from or put items into locked chests that you own, but hoppers placed by other players will be unable to do so. A hopper's own inventory is not not owner-locked, though, so you can use this as a way to allow other players to deposit items into your locked chests.")
+hopper_usage = hopper_usage .. S("When used with furnaces, hoppers inject items into the furnace's \"raw material\" inventory slot when the narrow end is attached to the top or bottom and inject items into the furnace's \"fuel\" inventory slot when attached to the furnace's side.\n\nItems that cannot be placed in a target block's inventory will remain in the hopper.\n\nHoppers have the same permissions as the player that placed them. Hoppers placed by you are allowed to take items from or put items into locked chests that you own, but hoppers placed by other players will be unable to do so. A hopper's own inventory is not not owner-locked, though, so you can use this as a way to allow other players to deposit items into your locked chests.")
 
 local containers = {}
 local neighbors = {}
@@ -54,7 +54,10 @@ function hopper:add_container(list)
 	end
 end
 
--- default containers ( relative position, target node, node inventory affected )
+-- "top" indicates what inventory the hopper will take items from if this node is located at the hopper's wide end
+-- "side" indicates what inventory the hopper will put items into if this node is located at the hopper's narrow end and at the same height as the hopper
+-- "bottom" indicates what inventory the hopper will put items into if this node is located at the hopper's narrow end and either above or below the hopper.
+
 hopper:add_container({
 	{"top", "hopper:hopper", "main"},
 	{"bottom", "hopper:hopper", "main"},
@@ -156,6 +159,7 @@ minetest.register_node("hopper:hopper", {
 	groups = {cracky = 3},
 	drawtype = "nodebox",
 	paramtype = "light",
+	paramtype2 = "facedir",
 	tiles = {
 		"hopper_top_" .. texture_resolution .. ".png",
 		"hopper_top_" .. texture_resolution .. ".png",
@@ -465,6 +469,15 @@ local directions = {
 	[23]={["src"]={x=0, y=-1, z=0},["dst"]={x=0, y=0, z=-1}},
 }
 
+local bottomdir = function(facedir)
+	return ({[0]={x=0, y=-1, z=0},
+		{x=0, y=0, z=-1},
+		{x=0, y=0, z=1},
+		{x=-1, y=0, z=0},
+		{x=1, y=0, z=0},
+		{x=0, y=1, z=0}})[math.floor(facedir/4)]
+end
+
 -- hopper workings
 minetest.register_abm({
 	label = "Hopper transfer",
@@ -475,13 +488,20 @@ minetest.register_abm({
 	catch_up = false,
 
 	action = function(pos, node, active_object_count, active_object_count_wider)
-		local source_pos, destination_pos
+		local source_pos, destination_pos, destination_dir
 		if node.name == "hopper:hopper_side" then
 			source_pos = vector.add(pos, directions[node.param2].src)
-			destination_pos = vector.add(pos, directions[node.param2].dst)
+			destination_dir = directions[node.param2].dst
+			destination_pos = vector.add(pos, destination_dir)
 		else
-			source_pos = {x=pos.x, y=pos.y+1, z=pos.z}
-			destination_pos = {x=pos.x, y=pos.y-1, z=pos.z}
+			destination_dir = bottomdir(node.param2)
+			source_pos = vector.subtract(pos, destination_dir)
+			destination_pos = vector.add(pos, destination_dir)
+		end
+		
+		local output_direction
+		if destination_dir.y == 0 then
+			output_direction = "horizontal"
 		end
 		
 		local source_node = minetest.get_node(source_pos)
@@ -492,7 +512,7 @@ minetest.register_abm({
 		end
 		
 		if containers[destination_node.name] ~= nil then
-			if node.name == "hopper:hopper_side" then
+			if output_direction == "horizontal" then
 				send_item_to(pos, destination_pos, destination_node, containers[destination_node.name]["side"])
 			else
 				send_item_to(pos, destination_pos, destination_node, containers[destination_node.name]["bottom"])

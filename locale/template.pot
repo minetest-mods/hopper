@@ -50,9 +50,10 @@ msgstr ""
 
 #: init.lua:24
 msgid ""
-"When used with furnaces, vertical hoppers inject items into the furnace's "
-"\"raw material\" inventory slot and side hoppers inject items into the "
-"furnace's \"fuel\" inventory slot.\n"
+"When used with furnaces, hoppers inject items into the furnace's \"raw "
+"material\" inventory slot when the narrow end is attached to the top or "
+"bottom and inject items into the furnace's \"fuel\" inventory slot when "
+"attached to the furnace's side.\n"
 "\n"
 "Items that cannot be placed in a target block's inventory will remain in the "
 "hopper.\n"
