@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-04 21:26-0700\n"
+"POT-Creation-Date: 2017-02-23 20:30-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -80,34 +80,60 @@ msgid ""
 "removed or their destination becomes available."
 msgstr ""
 
-#: init.lua:255
+#: init.lua:211
+msgid ""
+"Don't\n"
+"Eject"
+msgstr ""
+
+#: init.lua:211
+msgid ""
+"This hopper is currently set to eject items from its output\n"
+"even if there isn't a compatible block positioned to receive it.\n"
+"Click this button to disable this feature."
+msgstr ""
+
+#: init.lua:213
+msgid ""
+"Eject\n"
+"Items"
+msgstr ""
+
+#: init.lua:213
+msgid ""
+"This hopper is currently set to hold on to item if there\n"
+"isn't a compatible block positioned to receive it.\n"
+"Click this button to have it eject items instead."
+msgstr ""
+
+#: init.lua:280
 msgid "Hopper"
 msgstr ""
 
-#: init.lua:316 init.lua:407
+#: init.lua:341 init.lua:432
 msgid "@1 moves stuff in hopper at @2"
 msgstr ""
 
-#: init.lua:321 init.lua:412
+#: init.lua:346 init.lua:437
 msgid "@1 moves stuff to hopper at @2"
 msgstr ""
 
-#: init.lua:326 init.lua:417
+#: init.lua:351 init.lua:442
 msgid "@1 moves stuff from hopper at @2"
 msgstr ""
 
-#: init.lua:342
+#: init.lua:367
 msgid "Side Hopper"
 msgstr ""
 
-#: init.lua:441
+#: init.lua:469
 msgid "Hopper Chute"
 msgstr ""
 
-#: init.lua:498
+#: init.lua:526
 msgid "@1 moves stuff to chute at @2"
 msgstr ""
 
-#: init.lua:705
+#: init.lua:757
 msgid "[MOD] Hopper loaded"
 msgstr ""
