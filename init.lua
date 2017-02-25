@@ -20,29 +20,63 @@ end
 -- API
 
 local containers = {}
+local groups = {}
 local neighbors = {}
 
 -- global function to add new containers
 function hopper:add_container(list)
 	for _, entry in pairs(list) do
-		local node_info = containers[entry[2]]
-		if node_info == nil then
-			node_info = {}
-		end
-		node_info[entry[1]] = entry[3]
-		containers[entry[2]] = node_info
+	
+		local target_node = entry[2]
+		local neighbor_node
 		
-		-- result is a table of the form containers[target_node_name][relative_position][inventory_name]
+		if string.sub(target_node, 1, 6) == "group:" then
+			local group_identifier, group_number
+			local equals_index = string.find(target_node, "=")
+			if equals_index ~= nil then
+				group_identifier = string.sub(target_node, 7, equals_index-1)
+				-- it's possible that the string was of the form "group:blah = 1", in which case we want to trim spaces off the end of the group identifier
+				local space_index = string.find(group_identifier, " ") 
+				if space_index ~= nil then
+					group_identifier = string.sub(group_identifier, 1, space_index-1)
+				end
+				group_number = tonumber(string.sub(target_node, equals_index+1, -1))
+			else
+				group_identifier = string.sub(target_node, 7, -1)
+				group_number = "all" -- special value to indicate no number was provided
+			end
+			
+			local group_info = groups[group_identifier]
+			if group_info == nil then
+				group_info = {}
+			end
+			if group_info[group_number] == nil then
+				group_info[group_number] = {}
+			end
+			group_info[group_number][entry[1]] = entry[3]
+			groups[group_identifier] = group_info
+			neighbor_node = "group:"..group_identifier
+			-- result is a table of the form groups[group_identifier][group_number][relative_position][inventory_name]
+		else
+			local node_info = containers[target_node]
+			if node_info == nil then
+				node_info = {}
+			end
+			node_info[entry[1]] = entry[3]
+			containers[target_node] = node_info
+			neighbor_node = target_node
+			-- result is a table of the form containers[target_node_name][relative_position][inventory_name]
+		end
 		
 		local already_in_neighbors = false
 		for _, value in pairs(neighbors) do
-			if value == entry[2] then
+			if value == neighbor_node then
 				already_in_neighbors = true
 				break
 			end
 		end
 		if not already_in_neighbors then
-			table.insert(neighbors, entry[2])
+			table.insert(neighbors, neighbor_node)
 		end
 	end
 end
@@ -108,7 +142,32 @@ end
 hopper_usage = hopper_usage .. S("When used with furnaces, hoppers inject items into the furnace's \"raw material\" inventory slot when the narrow end is attached to the top or bottom and inject items into the furnace's \"fuel\" inventory slot when attached to the furnace's side.\n\nItems that cannot be placed in a target block's inventory will remain in the hopper.\n\nHoppers have the same permissions as the player that placed them. Hoppers placed by you are allowed to take items from or put items into locked chests that you own, but hoppers placed by other players will be unable to do so. A hopper's own inventory is not not owner-locked, though, so you can use this as a way to allow other players to deposit items into your locked chests.")
 
 local chute_long_desc = S("A chute to transfer items over longer distances.")
-local chute_usage = S("Chutes operate much like hoppers but do not have their own intake capability. Items can only be inserted into a chute manually or by a hopper connected to a chute. They transfer items in the direction indicated by the arrow on their narrow segment at a rate of one item per second. They have a small buffer capacity, and any items that can't be placed into the target block's inventory will remain lodged in the chute's buffer until manuall removed or their destination becomes available.")
+local chute_usage = S("Chutes operate much like hoppers but do not have their own intake capability. Items can only be inserted into a chute manually or by a hopper connected to a chute. They transfer items in the direction indicated by the arrow on their narrow segment at a rate of one item per second. They have a small buffer capacity, and any items that can't be placed into the target block's inventory will remain lodged in the chute's buffer until manually removed or their destination becomes available.")
+
+-------------------------------------------------------------------------------------------
+-- Target inventory retrieval
+
+-- looks first for a registration matching the specific node name, then for a registration
+-- matching group and value, then for a registration matching a group and *any* value
+local get_registered_inventories_for = function(target_node_name)
+	local output = containers[target_node_name]
+	if output ~= nil then return output end
+	
+	local target_def = minetest.registered_nodes[target_node_name]
+	if target_def.groups == nil then return nil end
+	
+	for group, value in pairs(target_def.groups) do
+		local registered_group = groups[group]
+		if registered_group ~= nil then
+			output = registered_group[value]
+			if output ~= nil then return output end
+			output = registered_group["all"]
+			if output ~= nil then return output end			
+		end	
+	end
+	
+	return nil
+end
 
 -------------------------------------------------------------------------------------------
 -- Inventory transfer functions
@@ -546,11 +605,12 @@ minetest.register_node("hopper:chute", {
 		end
 		
 		local destination_node = minetest.get_node(destination_pos)
-		if containers[destination_node.name] ~= nil then
+		local registered_inventories = get_registered_inventories_for(destination_node.name)
+		if registered_inventories ~= nil then
 			if output_direction == "horizontal" then
-				send_item_to(pos, destination_pos, destination_node, containers[destination_node.name]["side"])
+				send_item_to(pos, destination_pos, destination_node, registered_inventories["side"])
 			else
-				send_item_to(pos, destination_pos, destination_node, containers[destination_node.name]["bottom"])
+				send_item_to(pos, destination_pos, destination_node, registered_inventories["bottom"])
 			end
 		else
 			send_item_to(pos, destination_pos, destination_node)
@@ -689,19 +749,21 @@ minetest.register_abm({
 		
 		local source_node = minetest.get_node(source_pos)
 		local destination_node = minetest.get_node(destination_pos)
-				
-		if containers[source_node.name] ~= nil then
-			take_item_from(pos, source_pos, source_node, containers[source_node.name]["top"])
+
+		local registered_source_inventories = get_registered_inventories_for(source_node.name)
+		if registered_source_inventories ~= nil then
+			take_item_from(pos, source_pos, source_node, registered_source_inventories["top"])
 		end
 		
-		if containers[destination_node.name] ~= nil then
+		local registered_destination_inventories = get_registered_inventories_for(destination_node.name)
+		if registered_destination_inventories ~= nil then
 			if output_direction == "horizontal" then
-				send_item_to(pos, destination_pos, destination_node, containers[destination_node.name]["side"])
+				send_item_to(pos, destination_pos, destination_node, registered_destination_inventories["side"])
 			else
-				send_item_to(pos, destination_pos, destination_node, containers[destination_node.name]["bottom"])
+				send_item_to(pos, destination_pos, destination_node, registered_destination_inventories["bottom"])
 			end
 		else
-			send_item_to(pos, destination_pos, destination_node)
+			send_item_to(pos, destination_pos, destination_node) -- for handling ejection
 		end
 	end,
 })
