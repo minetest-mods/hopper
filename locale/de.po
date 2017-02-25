@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-23 20:30-0700\n"
+"POT-Creation-Date: 2017-02-25 06:31-0700\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -16,11 +16,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: init.lua:101
+#: init.lua:135
 msgid "Hopper to transfer items between neighboring blocks' inventories."
 msgstr ""
 
-#: init.lua:102
+#: init.lua:136
 msgid ""
 "Items are transfered from the block at the wide end of the hopper to the "
 "block at the narrow end of the hopper at a rate of one per second. Items can "
@@ -30,7 +30,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: init.lua:104
+#: init.lua:138
 msgid ""
 "Hopper blocks come in both 'vertical' and 'side' forms, but when in a "
 "player's inventory both are represented by a single generic item. The type "
@@ -41,14 +41,14 @@ msgid ""
 "\n"
 msgstr ""
 
-#: init.lua:106
+#: init.lua:140
 msgid ""
 "Hopper blocks come in both 'vertical' and 'side' forms. They can be "
 "interconverted between the two forms via the crafting grid.\n"
 "\n"
 msgstr ""
 
-#: init.lua:108
+#: init.lua:142
 msgid ""
 "When used with furnaces, hoppers inject items into the furnace's \"raw "
 "material\" inventory slot when the narrow end is attached to the top or "
@@ -65,77 +65,77 @@ msgid ""
 "as a way to allow other players to deposit items into your locked chests."
 msgstr ""
 
-#: init.lua:110
+#: init.lua:144
 msgid "A chute to transfer items over longer distances."
 msgstr ""
 
-#: init.lua:111
+#: init.lua:145
 msgid ""
 "Chutes operate much like hoppers but do not have their own intake "
 "capability. Items can only be inserted into a chute manually or by a hopper "
 "connected to a chute. They transfer items in the direction indicated by the "
 "arrow on their narrow segment at a rate of one item per second. They have a "
 "small buffer capacity, and any items that can't be placed into the target "
-"block's inventory will remain lodged in the chute's buffer until manuall "
+"block's inventory will remain lodged in the chute's buffer until manually "
 "removed or their destination becomes available."
 msgstr ""
 
-#: init.lua:211
+#: init.lua:270
 msgid ""
 "Don't\n"
 "Eject"
 msgstr ""
 
-#: init.lua:211
+#: init.lua:270
 msgid ""
 "This hopper is currently set to eject items from its output\n"
 "even if there isn't a compatible block positioned to receive it.\n"
 "Click this button to disable this feature."
 msgstr ""
 
-#: init.lua:213
+#: init.lua:272
 msgid ""
 "Eject\n"
 "Items"
 msgstr ""
 
-#: init.lua:213
+#: init.lua:272
 msgid ""
 "This hopper is currently set to hold on to item if there\n"
 "isn't a compatible block positioned to receive it.\n"
 "Click this button to have it eject items instead."
 msgstr ""
 
-#: init.lua:280
+#: init.lua:339
 msgid "Hopper"
 msgstr "Trichter"
 
-#: init.lua:341 init.lua:432
+#: init.lua:400 init.lua:491
 msgid "@1 moves stuff in hopper at @2"
 msgstr "@1 bewegt Dinge in einem Trichter bei @2"
 
-#: init.lua:346 init.lua:437
+#: init.lua:405 init.lua:496
 msgid "@1 moves stuff to hopper at @2"
 msgstr "@1 verlagert Dinge in einen Trichter bei @2"
 
-#: init.lua:351 init.lua:442
+#: init.lua:410 init.lua:501
 msgid "@1 moves stuff from hopper at @2"
 msgstr "@1 nimmt Dinge aus einem Trichter bei @2"
 
-#: init.lua:367
+#: init.lua:426
 msgid "Side Hopper"
 msgstr "Seitentrichter"
 
-#: init.lua:469
+#: init.lua:528
 #, fuzzy
 msgid "Hopper Chute"
 msgstr "Trichter"
 
-#: init.lua:526
+#: init.lua:585
 #, fuzzy
 msgid "@1 moves stuff to chute at @2"
 msgstr "@1 verlagert Dinge in einen Trichter bei @2"
 
-#: init.lua:757
+#: init.lua:819
 msgid "[MOD] Hopper loaded"
 msgstr "[MOD] Trichter geladen"
