@@ -16,6 +16,11 @@ if single_craftable_item == nil then
 	single_craftable_item = true
 end
 
+local eject_button_enabled = minetest.setting_getbool("hopper_eject_button")
+if eject_button_enabled == nil then
+	eject_button_enabled = true
+end
+
 -------------------------------------------------------------------------------------------
 -- API
 
@@ -219,7 +224,7 @@ end
 local function send_item_to(hopper_pos, target_pos, target_node, target_inventory_name)
 	local hopper_meta = minetest.get_meta(hopper_pos)
 	local target_def = minetest.registered_nodes[target_node.name]
-	local eject_item = hopper_meta:get_string("eject") == "true" and target_def.buildable_to
+	local eject_item = eject_button_enabled and hopper_meta:get_string("eject") == "true" and target_def.buildable_to
 	
 	if not eject_item and not target_inventory_name then
 		return
@@ -268,12 +273,18 @@ end
 -------------------------------------------------------------------------------------------
 -- Nodes
 
-local function get_eject_button_texts(pos)
+local function get_eject_button_texts(pos, loc_X, loc_Y)
+	if not eject_button_enabled then return "" end
+
+	local eject_button_text, eject_button_tooltip
 	if minetest.get_meta(pos):get_string("eject") == "true" then
-		return S("Don't\nEject"), S("This hopper is currently set to eject items from its output\neven if there isn't a compatible block positioned to receive it.\nClick this button to disable this feature.")
+		eject_button_text = S("Don't\nEject")
+		eject_button_tooltip = S("This hopper is currently set to eject items from its output\neven if there isn't a compatible block positioned to receive it.\nClick this button to disable this feature.")
 	else
-		return S("Eject\nItems"), S("This hopper is currently set to hold on to item if there\nisn't a compatible block positioned to receive it.\nClick this button to have it eject items instead.")
+		eject_button_text = S("Eject\nItems")
+		eject_button_tooltip = S("This hopper is currently set to hold on to item if there\nisn't a compatible block positioned to receive it.\nClick this button to have it eject items instead.")
 	end
+	return string.format("button_exit[%i,%i;1,1;eject;%s]tooltip[eject;%s]", loc_X, loc_Y, eject_button_text, eject_button_tooltip)
 end
 
 local function get_string_pos(pos)
@@ -289,14 +300,12 @@ end
 
 -- formspec
 local function get_hopper_formspec(pos)
-	local eject_button_text, eject_button_tooltip = get_eject_button_texts(pos)
 	local spos = get_string_pos(pos)
 	local formspec =
 		"size[8,9]"
 		.. formspec_bg
 		.. "list[nodemeta:" .. spos .. ";main;2,0.3;4,4;]"
-		.. "button_exit[7,2;1,1;eject;"..eject_button_text.."]"
-		.. "tooltip[eject;"..eject_button_tooltip.."]"
+		.. get_eject_button_texts(pos, 7, 2)
 		.. "list[current_player;main;0,4.85;8,1;]"
 		.. "list[current_player;main;0,6.08;8,3;8]"
 		.. "listring[nodemeta:" .. spos .. ";main]"
@@ -518,8 +527,7 @@ local function get_chute_formspec(pos)
 		"size[8,7]"
 		.. formspec_bg
 		.. "list[nodemeta:" .. spos .. ";main;3,0.3;2,2;]"
-		.. "button_exit[7,1;1,1;eject;"..eject_button_text.."]"
-		.. "tooltip[eject;"..eject_button_tooltip.."]"
+		.. get_eject_button_texts(pos, 7, 1)
 		.. "list[current_player;main;0,2.85;8,1;]"
 		.. "list[current_player;main;0,4.08;8,3;8]"
 		.. "listring[nodemeta:" .. spos .. ";main]"
