@@ -93,23 +93,27 @@ hopper:add_container({
 	
 	{"bottom", "hopper:chute", "main"},
 	{"side", "hopper:chute", "main"},
-
-	{"top", "default:chest", "main"},
-	{"bottom", "default:chest", "main"},
-	{"side", "default:chest", "main"},
-
-	{"top", "default:furnace", "dst"},
-	{"bottom", "default:furnace", "src"},
-	{"side", "default:furnace", "fuel"},
-
-	{"top", "default:furnace_active", "dst"},
-	{"bottom", "default:furnace_active", "src"},
-	{"side", "default:furnace_active", "fuel"},
-
-	{"top", "default:chest_locked", "main"},
-	{"bottom", "default:chest_locked", "main"},
-	{"side", "default:chest_locked", "main"},
 })
+
+if minetest.get_modpath("default") then
+	hopper:add_container({
+		{"top", "default:chest", "main"},
+		{"bottom", "default:chest", "main"},
+		{"side", "default:chest", "main"},
+	
+		{"top", "default:furnace", "dst"},
+		{"bottom", "default:furnace", "src"},
+		{"side", "default:furnace", "fuel"},
+	
+		{"top", "default:furnace_active", "dst"},
+		{"bottom", "default:furnace_active", "src"},
+		{"side", "default:furnace_active", "fuel"},
+	
+		{"top", "default:chest_locked", "main"},
+		{"bottom", "default:chest_locked", "main"},
+		{"side", "default:chest_locked", "main"},
+	})
+end
 
 -- protector redo mod support
 if minetest.get_modpath("protector") then
@@ -264,7 +268,6 @@ end
 -------------------------------------------------------------------------------------------
 -- Nodes
 
-
 local function get_eject_button_texts(pos)
 	if minetest.get_meta(pos):get_string("eject") == "true" then
 		return S("Don't\nEject"), S("This hopper is currently set to eject items from its output\neven if there isn't a compatible block positioned to receive it.\nClick this button to disable this feature.")
@@ -277,15 +280,20 @@ local function get_string_pos(pos)
 	return pos.x .. "," .. pos.y .. "," ..pos.z
 end
 
+local formspec_bg
+if minetest.get_modpath("default") then
+	formspec_bg = default.gui_bg .. default.gui_bg_img .. default.gui_slots
+else
+	formspec_bg = "bgcolor[#080808BB;true]" .. "listcolors[#00000069;#5A5A5A;#141318;#30434C;#FFF]"
+end
+
 -- formspec
 local function get_hopper_formspec(pos)
 	local eject_button_text, eject_button_tooltip = get_eject_button_texts(pos)
 	local spos = get_string_pos(pos)
 	local formspec =
 		"size[8,9]"
-		.. default.gui_bg
-		.. default.gui_bg_img
-		.. default.gui_slots
+		.. formspec_bg
 		.. "list[nodemeta:" .. spos .. ";main;2,0.3;4,4;]"
 		.. "button_exit[7,2;1,1;eject;"..eject_button_text.."]"
 		.. "tooltip[eject;"..eject_button_tooltip.."]"
@@ -508,9 +516,7 @@ local function get_chute_formspec(pos)
 	local spos = pos.x .. "," .. pos.y .. "," ..pos.z
 	local formspec =
 		"size[8,7]"
-		.. default.gui_bg
-		.. default.gui_bg_img
-		.. default.gui_slots
+		.. formspec_bg
 		.. "list[nodemeta:" .. spos .. ";main;3,0.3;2,2;]"
 		.. "button_exit[7,1;1,1;eject;"..eject_button_text.."]"
 		.. "tooltip[eject;"..eject_button_tooltip.."]"
@@ -771,41 +777,43 @@ minetest.register_abm({
 -------------------------------------------------------------------------------------------
 -- Crafts
 
-minetest.register_craft({
-	output = "hopper:hopper",
-	recipe = {
-		{"default:steel_ingot","default:chest","default:steel_ingot"},
-		{"","default:steel_ingot",""},
-	}
-})
-
-minetest.register_craft({
-	output = "hopper:chute",
-	recipe = {
-		{"default:steel_ingot","default:chest","default:steel_ingot"},
-	}
-})
-
-if not single_craftable_item then
+if minetest.get_modpath("default") then
 	minetest.register_craft({
-		output = "hopper:hopper_side",
+		output = "hopper:hopper",
 		recipe = {
 			{"default:steel_ingot","default:chest","default:steel_ingot"},
-			{"","","default:steel_ingot"},
+			{"","default:steel_ingot",""},
 		}
 	})
 	
 	minetest.register_craft({
-		output = "hopper:hopper_side",
-		type="shapeless",
-		recipe = {"hopper:hopper"},
+		output = "hopper:chute",
+		recipe = {
+			{"default:steel_ingot","default:chest","default:steel_ingot"},
+		}
 	})
-
-	minetest.register_craft({
-		output = "hopper:hopper",
-		type="shapeless",
-		recipe = {"hopper:hopper_side"},
-	})
+	
+	if not single_craftable_item then
+		minetest.register_craft({
+			output = "hopper:hopper_side",
+			recipe = {
+				{"default:steel_ingot","default:chest","default:steel_ingot"},
+				{"","","default:steel_ingot"},
+			}
+		})
+		
+		minetest.register_craft({
+			output = "hopper:hopper_side",
+			type="shapeless",
+			recipe = {"hopper:hopper"},
+		})
+	
+		minetest.register_craft({
+			output = "hopper:hopper",
+			type="shapeless",
+			recipe = {"hopper:hopper_side"},
+		})
+	end
 end
 
 -- add lucky blocks
