@@ -521,7 +521,6 @@ minetest.register_node("hopper:hopper_side", {
 })
 
 local function get_chute_formspec(pos)
-	local eject_button_text, eject_button_tooltip = get_eject_button_texts(pos)
 	local spos = pos.x .. "," .. pos.y .. "," ..pos.z
 	local formspec =
 		"size[8,7]"
