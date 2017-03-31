@@ -22,5 +22,6 @@ Change log:
 - 1.4 - Added intllib support
 - 1.5 - Added chutes
 - 1.6 - Added "eject items" button to formspecs, "group" support to the API
+- 1.7 - Added sorter block to allow for more sophisticated item transfer arrangements
 
 Lucky Blocks: 2
