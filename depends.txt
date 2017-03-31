@@ -2,3 +2,5 @@ default?
 lucky_block?
 doc?
 intllib?
+protector?
+wine?
