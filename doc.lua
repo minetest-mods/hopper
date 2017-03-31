@@ -1,3 +1,7 @@
+-- internationalization boilerplate
+local MP = minetest.get_modpath(minetest.get_current_modname())
+local S, NS = dofile(MP.."/intllib.lua")
+
 hopper.doc = {}
 
 hopper.doc.hopper_long_desc = S("Hopper to transfer items between neighboring blocks' inventories.")
@@ -9,6 +13,6 @@ else
 end
 hopper.doc.hopper_usage = hopper.doc.hopper_usage .. S("When used with furnaces, hoppers inject items into the furnace's \"raw material\" inventory slot when the narrow end is attached to the top or bottom and inject items into the furnace's \"fuel\" inventory slot when attached to the furnace's side.\n\nItems that cannot be placed in a target block's inventory will remain in the hopper.\n\nHoppers have the same permissions as the player that placed them. Hoppers placed by you are allowed to take items from or put items into locked chests that you own, but hoppers placed by other players will be unable to do so. A hopper's own inventory is not not owner-locked, though, so you can use this as a way to allow other players to deposit items into your locked chests.")
 
-local hopper.doc.chute_long_desc = S("A chute to transfer items over longer distances.")
-local hopper.doc.chute_usage = S("Chutes operate much like hoppers but do not have their own intake capability. Items can only be inserted into a chute manually or by a hopper connected to a chute. They transfer items in the direction indicated by the arrow on their narrow segment at a rate of one item per second. They have a small buffer capacity, and any items that can't be placed into the target block's inventory will remain lodged in the chute's buffer until manually removed or their destination becomes available.")
+hopper.doc.chute_long_desc = S("A chute to transfer items over longer distances.")
+hopper.doc.chute_usage = S("Chutes operate much like hoppers but do not have their own intake capability. Items can only be inserted into a chute manually or by a hopper connected to a chute. They transfer items in the direction indicated by the arrow on their narrow segment at a rate of one item per second. They have a small buffer capacity, and any items that can't be placed into the target block's inventory will remain lodged in the chute's buffer until manually removed or their destination becomes available.")
 

@@ -1,3 +1,7 @@
+-- internationalization boilerplate
+local MP = minetest.get_modpath(minetest.get_current_modname())
+local S, NS = dofile(MP.."/intllib.lua")
+
 -- Target inventory retrieval
 
 -- looks first for a registration matching the specific node name, then for a registration
@@ -20,6 +24,24 @@ hopper.get_registered_inventories_for = function(target_node_name)
 	end
 	
 	return nil
+end
+
+hopper.get_eject_button_texts = function(pos, loc_X, loc_Y)
+	if not hopper.config.eject_button_enabled then return "" end
+
+	local eject_button_text, eject_button_tooltip
+	if minetest.get_meta(pos):get_string("eject") == "true" then
+		eject_button_text = S("Don't\nEject")
+		eject_button_tooltip = S("This hopper is currently set to eject items from its output\neven if there isn't a compatible block positioned to receive it.\nClick this button to disable this feature.")
+	else
+		eject_button_text = S("Eject\nItems")
+		eject_button_tooltip = S("This hopper is currently set to hold on to item if there\nisn't a compatible block positioned to receive it.\nClick this button to have it eject items instead.")
+	end
+	return string.format("button_exit[%i,%i;1,1;eject;%s]tooltip[eject;%s]", loc_X, loc_Y, eject_button_text, eject_button_tooltip)
+end
+
+hopper.get_string_pos = function(pos)
+	return pos.x .. "," .. pos.y .. "," ..pos.z
 end
 
 -------------------------------------------------------------------------------------------
