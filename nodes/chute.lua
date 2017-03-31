@@ -22,6 +22,7 @@ minetest.register_node("hopper:chute", {
     _doc_items_usagehelp = hopper.doc.chute_usage,
 	drop = "hopper:chute",
 	groups = {cracky = 3},
+	sounds = hopper.metal_sounds,
 	drawtype = "nodebox",
 	paramtype = "light",
 	paramtype2 = "facedir",

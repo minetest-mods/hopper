@@ -18,9 +18,9 @@ if minetest.get_modpath("default") then
 	minetest.register_craft({
 		output = "hopper:sorter",
 		recipe = {
-			{"default:steel_ingot","default:mese_crystal","default:steel_ingot"},
+			{"","default:mese_crystal",""},
 			{"default:steel_ingot","default:chest","default:steel_ingot"},
-			{"default:steel_ingot","","default:steel_ingot"},
+			{"","default:steel_ingot",""},
 		}
 	})
 	

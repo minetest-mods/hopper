@@ -44,6 +44,13 @@ hopper.get_string_pos = function(pos)
 	return pos.x .. "," .. pos.y .. "," ..pos.z
 end
 
+-- Apparently node_sound_metal_defaults is a newer thing, I ran into games using an older version of the default mod without it.
+if default.node_sound_metal_defaults ~= nil then
+	hopper.metal_sounds = default.node_sound_metal_defaults()
+else
+	hopper.metal_sounds = default.node_sound_stone_defaults()
+end
+
 -------------------------------------------------------------------------------------------
 -- Inventory transfer functions
 
