@@ -72,6 +72,9 @@ hopper:add_container({
 	
 	{"bottom", "hopper:chute", "main"},
 	{"side", "hopper:chute", "main"},
+	
+	{"bottom", "hopper:sorter", "main"},
+	{"side", "hopper:sorter", "main"},
 })
 
 if minetest.get_modpath("default") then

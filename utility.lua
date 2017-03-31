@@ -87,20 +87,20 @@ hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inv
 end
 
 -- Used to put items from the hopper inventory into the target block
-hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inventory_name)
+hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inventory_name, filtered_items)
 	local hopper_meta = minetest.get_meta(hopper_pos)
 	local target_def = minetest.registered_nodes[target_node.name]
 	local eject_item = hopper.config.eject_button_enabled and hopper_meta:get_string("eject") == "true" and target_def.buildable_to
 	
 	if not eject_item and not target_inventory_name then
-		return
+		return false
 	end
 
 	--hopper inventory
 	local hopper_meta = minetest.get_meta(hopper_pos);
 	local hopper_inv = hopper_meta:get_inventory()
 	if hopper_inv:is_empty("main") == true then
-		return
+		return false
 	end
 	local hopper_inv_size = hopper_inv:get_size("main")
 	local placer = minetest.get_player_by_name(hopper_meta:get_string("placer"))
@@ -111,7 +111,7 @@ hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inven
 	for i = 1,hopper_inv_size do
 		local stack = hopper_inv:get_stack("main", i)
 		local item = stack:get_name()
-		if item ~= "" then
+		if item ~= "" and (filtered_items == nil or filtered_items[item]) then
 			if target_inventory_name then
 				if target_inv:room_for_item(target_inventory_name, item) then
 					local stack_to_put = stack:take_item(1)
@@ -124,14 +124,16 @@ hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inven
 						if target_def.on_metadata_inventory_put ~= nil and placer ~= nil then
 							target_def.on_metadata_inventory_put(target_pos, target_inventory_name, i, stack_to_put, placer)
 						end
-						break
+						return true
 					end
 				end
 			elseif eject_item then
 				local stack_to_put = stack:take_item(1)
 				minetest.add_item(target_pos, stack_to_put)
 				hopper_inv:set_stack("main", i, stack)
+				return true
 			end
 		end
 	end
+	return false
 end

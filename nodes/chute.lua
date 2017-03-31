@@ -86,7 +86,6 @@ minetest.register_node("hopper:chute", {
 	on_timer = function(pos, elapsed)
 		local meta = minetest.get_meta(pos);
 		local inv = meta:get_inventory()
-		local eject_item = meta:get_string("eject") == "true"
 
 		local node = minetest.get_node(pos)
 		local dir = minetest.facedir_to_dir(node.param2)
