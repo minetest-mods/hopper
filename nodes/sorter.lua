@@ -17,15 +17,30 @@ end
 
 local function get_sorter_formspec(pos)
 	local spos = hopper.get_string_pos(pos)
+	
+	local filter_all = minetest.get_meta(pos):get_string("filter_all") == "true"
+	local y_displace = 0
+	local filter_button_text, filter_button_tooltip, filter_body
+	if filter_all then
+		filter_body = ""
+		filter_button_text = S("Selective\nFilter")
+		filter_button_tooltip = S("This sorter is currently set to try sending all items\nin the direction of the arrow. Click this button\nto enable an item-type-specific filter.")
+	else
+		filter_body = "label[3.7,0;"..S("Filter").."]list[nodemeta:" .. spos .. ";filter;0,0.5;8,1;]"
+		filter_button_text = S("Filter\nAll")
+		filter_button_tooltip = S("This sorter is currently set to only send items listed\nin the filter list in the direction of the arrow.\nClick this button to set it to try sending all\nitems that way first.")
+		y_displace = 1.6
+	end
+	
 	local formspec =
-		"size[8,8.4]"
+		"size[8," .. 7 + y_displace .. "]"
 		.. hopper.formspec_bg
-		.. "label[3.7,0;"..S("Filter").."]"
-		.. "list[nodemeta:" .. spos .. ";filter;0,0.5;8,1;]"
-		.. "list[nodemeta:" .. spos .. ";main;3,2.1;2,2;]"
-		.. hopper.get_eject_button_texts(pos, 7, 3)
-		.. "list[current_player;main;0,4.5;8,1;]"
-		.. "list[current_player;main;0,5.7;8,3;8]"
+		.. filter_body		
+		.. "list[nodemeta:" .. spos .. ";main;3,".. tostring(0.3 + y_displace) .. ";2,2;]"
+		.. "button_exit[7,".. tostring(0.8 + y_displace) .. ";1,1;filter_all;".. filter_button_text .. "]tooltip[filter_all;" .. filter_button_tooltip.. "]"
+		.. hopper.get_eject_button_texts(pos, 6, 0.8 + y_displace)
+		.. "list[current_player;main;0,".. tostring(2.85 + y_displace) .. ";8,1;]"
+		.. "list[current_player;main;0,".. tostring(4.08 + y_displace) .. ";8,3;8]"
 		.. "listring[nodemeta:" .. spos .. ";main]"
 		.. "listring[current_player;main]"
 	return formspec
@@ -44,8 +59,8 @@ minetest.register_node("hopper:sorter", {
 	tiles = {
 			"hopper_bottom_" .. hopper.config.texture_resolution .. ".png",
 			"hopper_top_" .. hopper.config.texture_resolution .. ".png",
-			"hopper_bottom_" .. hopper.config.texture_resolution .. ".png^hopper_sorter_arrow_" .. hopper.config.texture_resolution .. ".png^[transformFX",
-			"hopper_bottom_" .. hopper.config.texture_resolution .. ".png^hopper_sorter_arrow_" .. hopper.config.texture_resolution .. ".png",
+			"hopper_bottom_" .. hopper.config.texture_resolution .. ".png^hopper_sorter_arrow_" .. hopper.config.texture_resolution .. ".png^[transformFX^hopper_sorter_sub_arrow_" .. hopper.config.texture_resolution .. ".png^[transformFX",
+			"hopper_bottom_" .. hopper.config.texture_resolution .. ".png^hopper_sorter_arrow_" .. hopper.config.texture_resolution .. ".png^hopper_sorter_sub_arrow_" .. hopper.config.texture_resolution .. ".png",
 			"hopper_top_" .. hopper.config.texture_resolution .. ".png",
 			"hopper_bottom_" .. hopper.config.texture_resolution .. ".png^hopper_sorter_arrow_" .. hopper.config.texture_resolution .. ".png",
 		},
@@ -126,13 +141,16 @@ minetest.register_node("hopper:sorter", {
 		local inv = meta:get_inventory()
 
 		-- build a filter list
-		local filter_items = {}
-		local filter_inv_size = inv:get_size("filter")
-		for i = 1, filter_inv_size do
-			local stack = inv:get_stack("filter", i)
-			local item = stack:get_name()
-			if item ~= "" then
-				filter_items[item] = true
+		local filter_items = nil		
+		if meta:get_string("filter_all") ~= "true" then
+			filter_items = {}
+			local filter_inv_size = inv:get_size("filter")
+			for i = 1, filter_inv_size do
+				local stack = inv:get_stack("filter", i)
+				local item = stack:get_name()
+				if item ~= "" then
+					filter_items[item] = true
+				end
 			end
 		end
 		

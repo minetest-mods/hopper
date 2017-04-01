@@ -30,12 +30,20 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 		local pos = minetest.string_to_pos(string.sub(formname, 17, -1))
 		local meta = minetest.get_meta(pos)
 		local eject_setting = meta:get_string("eject") == "true"
+		local filter_all_setting = meta:get_string("filter_all") == "true"
 		if fields.eject then
 			if eject_setting then
 				meta:set_string("eject", nil)
 			else
 				meta:set_string("eject", "true")
 			end
+		end
+		if fields.filter_all then
+			if filter_all_setting then
+				meta:set_string("filter_all", nil)
+			else
+				meta:set_string("filter_all", "true")
+			end			
 		end
 	end
 end)

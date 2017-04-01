@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-31 00:35-0600\n"
+"POT-Creation-Date: 2017-04-01 09:43-0600\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -98,10 +98,18 @@ msgid ""
 "\n"
 "If the item doesn't match the filter list, or the secondary output is unable "
 "to take the item for whatever reason, the sorter will try to send the item "
-"out the other output instead."
+"out the other output instead.\n"
+"\n"
+"In addition, there is a button labeled \"Filter All\" that will tell the "
+"sorter to not use the filter list and instead first attempt to shunt all "
+"items out of the filter, only sending items along the non-filter path if the "
+"target cannot accept it for whatever reason. This feature is useful for "
+"handling \"overflow\" (when the target's inventory fills up) or for dealing "
+"with targets that are selective about what they accept (for example, a "
+"furnace's fuel slot)."
 msgstr ""
 
-#: hopper\init.lua:53
+#: hopper\init.lua:61
 msgid "[MOD] Hopper loaded"
 msgstr "[MOD] Trichter geladen"
 
@@ -135,7 +143,7 @@ msgstr ""
 msgid "Hopper Chute"
 msgstr ""
 
-#: hopper\nodes\chute.lua:77
+#: hopper\nodes\chute.lua:78
 #, fuzzy
 msgid "@1 moves stuff to chute at @2"
 msgstr "@1 verlagert Dinge in einen Trichter bei @2"
@@ -144,34 +152,65 @@ msgstr "@1 verlagert Dinge in einen Trichter bei @2"
 msgid "Hopper"
 msgstr "Trichter"
 
-#: hopper\nodes\hoppers.lua:121
-#: hopper\nodes\hoppers.lua:212
+#: hopper\nodes\hoppers.lua:122
+#: hopper\nodes\hoppers.lua:214
 msgid "@1 moves stuff in hopper at @2"
 msgstr "@1 bewegt Dinge in einem Trichter bei @2"
 
-#: hopper\nodes\hoppers.lua:126
-#: hopper\nodes\hoppers.lua:217
+#: hopper\nodes\hoppers.lua:127
+#: hopper\nodes\hoppers.lua:219
 msgid "@1 moves stuff to hopper at @2"
 msgstr "@1 verlagert Dinge in einen Trichter bei @2"
 
-#: hopper\nodes\hoppers.lua:131
-#: hopper\nodes\hoppers.lua:222
+#: hopper\nodes\hoppers.lua:132
+#: hopper\nodes\hoppers.lua:224
 msgid "@1 moves stuff from hopper at @2"
 msgstr "@1 nimmt Dinge aus einem Trichter bei @2"
 
-#: hopper\nodes\hoppers.lua:147
+#: hopper\nodes\hoppers.lua:148
 msgid "Side Hopper"
 msgstr "Seitentrichter"
 
+#: hopper\nodes\sorter.lua:22
+#: hopper\nodes\sorter.lua:39
+msgid ""
+"Selective\n"
+"Filter"
+msgstr ""
+
 #: hopper\nodes\sorter.lua:23
+#: hopper\nodes\sorter.lua:40
+msgid ""
+"This sorter is currently set to try sending all items\n"
+"in the direction of the arrow. Click this button\n"
+"to enable an item-type-specific filter."
+msgstr ""
+
+#: hopper\nodes\sorter.lua:25
+#: hopper\nodes\sorter.lua:43
+msgid ""
+"Filter\n"
+"All"
+msgstr ""
+
+#: hopper\nodes\sorter.lua:26
+#: hopper\nodes\sorter.lua:44
+msgid ""
+"This sorter is currently set to only send items listed\n"
+"in the filter list in the direction of the arrow.\n"
+"Click this button to set it to try sending all\n"
+"items that way first."
+msgstr ""
+
+#: hopper\nodes\sorter.lua:42
 msgid "Filter"
 msgstr ""
 
-#: hopper\nodes\sorter.lua:36
+#: hopper\nodes\sorter.lua:64
 msgid "Sorter"
 msgstr ""
 
-#: hopper\nodes\sorter.lua:115
+#: hopper\nodes\sorter.lua:143
 #, fuzzy
 msgid "@1 moves stuff to sorter at @2"
 msgstr "@1 verlagert Dinge in einen Trichter bei @2"
