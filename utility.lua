@@ -54,6 +54,22 @@ end
 -------------------------------------------------------------------------------------------
 -- Inventory transfer functions
 
+local delay = function(x)
+	return (function() return x end)
+end
+
+local get_placer = function(player_name)
+	if player_name ~= "" then
+		return minetest.get_player_by_name(player_name) or {
+			is_player = delay(true),
+			get_player_name = delay(player_name),
+			is_fake_player = ":hopper",
+			get_wielded_item = delay(ItemStack(nil))
+		}
+	end
+	return nil
+end
+
 -- Used to remove items from the target block and put it into the hopper's inventory
 hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inventory_name)
 	if target_inventory_name == nil then
@@ -63,8 +79,8 @@ hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inv
 	--hopper inventory
 	local hopper_meta = minetest.get_meta(hopper_pos);
 	local hopper_inv = hopper_meta:get_inventory()
-	local placer = minetest.get_player_by_name(hopper_meta:get_string("placer"))
-
+	local placer = get_placer(hopper_meta:get_string("placer"))
+	
 	--source inventory
 	local target_inv = minetest.get_meta(target_pos):get_inventory()
 	local target_inv_size = target_inv:get_size(target_inventory_name)
@@ -78,7 +94,7 @@ hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inv
 					local stack_to_take = stack:take_item(1)
 					if target_def.allow_metadata_inventory_take == nil
 					  or placer == nil -- backwards compatibility, older versions of this mod didn't record who placed the hopper
-					  or target_def.allow_metadata_inventory_take(target_pos, target_inventory_name, i, stack_to_take, placer) > 0 then		
+					  or target_def.allow_metadata_inventory_take(target_pos, target_inventory_name, i, stack_to_take, placer) > 0 then
 						target_inv:set_stack(target_inventory_name, i, stack)
 						--add to hopper
 						hopper_inv:add_item("main", item)
@@ -110,8 +126,8 @@ hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inven
 		return false
 	end
 	local hopper_inv_size = hopper_inv:get_size("main")
-	local placer = minetest.get_player_by_name(hopper_meta:get_string("placer"))
-	
+	local placer = get_placer(hopper_meta:get_string("placer"))
+
 	--target inventory
 	local target_inv = minetest.get_meta(target_pos):get_inventory()
 
