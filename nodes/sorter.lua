@@ -126,6 +126,20 @@ minetest.register_node("hopper:sorter", {
 		return stack:get_count()
 	end,
 	
+	allow_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
+		if to_list == "filter" then
+			local inv = minetest.get_inventory({type="node", pos=pos})
+			local stack_moved = inv:get_stack(from_list, from_index)
+			inv:set_stack(to_list, to_index, stack_moved:take_item(1))
+			return 0
+		elseif from_list == "filter" then
+			local inv = minetest.get_inventory({type="node", pos=pos})
+			inv:set_stack(from_list, from_index, ItemStack(""))
+			return 0			
+		end
+		return count
+	end,
+	
 	on_metadata_inventory_put = function(pos, listname, index, stack, player)
 		minetest.log("action", S("@1 moves stuff to sorter at @2",
 			player:get_player_name(), minetest.pos_to_string(pos)))
