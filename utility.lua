@@ -11,7 +11,7 @@ hopper.get_registered_inventories_for = function(target_node_name)
 	if output ~= nil then return output end
 	
 	local target_def = minetest.registered_nodes[target_node_name]
-	if target_def.groups == nil then return nil end
+	if target_def == nil or target_def.groups == nil then return nil end
 	
 	for group, value in pairs(target_def.groups) do
 		local registered_group = hopper.groups[group]
@@ -75,6 +75,10 @@ hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inv
 	if target_inventory_name == nil then
 		return
 	end
+	local target_def = minetest.registered_nodes[target_node.name]
+	if not target_def then
+		return
+	end
 
 	--hopper inventory
 	local hopper_meta = minetest.get_meta(hopper_pos);
@@ -84,7 +88,6 @@ hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inv
 	--source inventory
 	local target_inv = minetest.get_meta(target_pos):get_inventory()
 	local target_inv_size = target_inv:get_size(target_inventory_name)
-	local target_def = minetest.registered_nodes[target_node.name]
 	if target_inv:is_empty(target_inventory_name) == false then
 		for i = 1,target_inv_size do
 			local stack = target_inv:get_stack(target_inventory_name, i)
@@ -113,6 +116,10 @@ end
 hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inventory_name, filtered_items)
 	local hopper_meta = minetest.get_meta(hopper_pos)
 	local target_def = minetest.registered_nodes[target_node.name]
+	if not target_def then
+		return false
+	end
+	
 	local eject_item = hopper.config.eject_button_enabled and hopper_meta:get_string("eject") == "true" and target_def.buildable_to
 	
 	if not eject_item and not target_inventory_name then
