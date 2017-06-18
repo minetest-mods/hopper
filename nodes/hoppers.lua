@@ -45,7 +45,7 @@ local hopper_on_place = function(itemstack, placer, pointed_thing, node_name)
 	if success then
 		local meta = minetest.get_meta(pos2)
 		meta:set_string("placer", placer:get_player_name())
-		if not minetest.setting_getbool("creative_mode") then
+		if not minetest.settings:get_bool("creative_mode") then
 			itemstack:take_item()
 		end
 	end
