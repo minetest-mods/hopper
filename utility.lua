@@ -9,20 +9,20 @@ local S, NS = dofile(MP.."/intllib.lua")
 hopper.get_registered_inventories_for = function(target_node_name)
 	local output = hopper.containers[target_node_name]
 	if output ~= nil then return output end
-	
+
 	local target_def = minetest.registered_nodes[target_node_name]
 	if target_def == nil or target_def.groups == nil then return nil end
-	
+
 	for group, value in pairs(target_def.groups) do
 		local registered_group = hopper.groups[group]
 		if registered_group ~= nil then
 			output = registered_group[value]
 			if output ~= nil then return output end
 			output = registered_group["all"]
-			if output ~= nil then return output end			
-		end	
+			if output ~= nil then return output end
+		end
 	end
-	
+
 	return nil
 end
 
@@ -84,7 +84,7 @@ hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inv
 	local hopper_meta = minetest.get_meta(hopper_pos);
 	local hopper_inv = hopper_meta:get_inventory()
 	local placer = get_placer(hopper_meta:get_string("placer"))
-	
+
 	--source inventory
 	local target_inv = minetest.get_meta(target_pos):get_inventory()
 	local target_inv_size = target_inv:get_size(target_inventory_name)
@@ -100,7 +100,7 @@ hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inv
 					  or target_def.allow_metadata_inventory_take(target_pos, target_inventory_name, i, stack_to_take, placer) > 0 then
 						target_inv:set_stack(target_inventory_name, i, stack)
 						--add to hopper
-						hopper_inv:add_item("main", item)
+						hopper_inv:add_item("main", stack_to_take)
 						if target_def.on_metadata_inventory_take ~= nil and placer ~= nil then
 							target_def.on_metadata_inventory_take(target_pos, target_inventory_name, i, stack_to_take, placer)
 						end
@@ -119,9 +119,9 @@ hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inven
 	if not target_def then
 		return false
 	end
-	
+
 	local eject_item = hopper.config.eject_button_enabled and hopper_meta:get_string("eject") == "true" and target_def.buildable_to
-	
+
 	if not eject_item and not target_inventory_name then
 		return false
 	end
