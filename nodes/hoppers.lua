@@ -117,17 +117,17 @@ minetest.register_node("hopper:hopper", {
 	end,
 
 	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
-		minetest.log("action", S("@1 moves stuff in hopper at @2",
+		minetest.log("action", ("%s moves stuff in hopper at %s"):format(
 			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 
 	on_metadata_inventory_put = function(pos, listname, index, stack, player)
-		minetest.log("action", S("@1 moves stuff to hopper at @2",
+		hopper.log_inventory(("%s moves stuff to hopper at %s"):format(
 			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 
 	on_metadata_inventory_take = function(pos, listname, index, stack, player)
-		minetest.log("action", S("@1 moves stuff from hopper at @2",
+		hopper.log_inventory(("%s moves stuff from hopper at %s"):format(
 			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 })
@@ -209,17 +209,18 @@ minetest.register_node("hopper:hopper_side", {
 	end,
 
 	on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
-		minetest.log("action", S("@1 moves stuff in hopper at @2",
+		-- Only players move items. "action" is generally okay here.
+		minetest.log("action", ("%s moves stuff in hopper at %s"):format(
 			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 
 	on_metadata_inventory_put = function(pos, listname, index, stack, player)
-		minetest.log("action", S("@1 moves stuff to hopper at @2",
+		hopper.log_inventory(("%s moves stuff to hopper at%s"):format(
 			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 
 	on_metadata_inventory_take = function(pos, listname, index, stack, player)
-		minetest.log("action", S("@1 moves stuff from hopper at @2",
+		hopper.log_inventory(("%s moves stuff from hopper at %s"):format(
 			player:get_player_name(), minetest.pos_to_string(pos)))
 	end,
 })

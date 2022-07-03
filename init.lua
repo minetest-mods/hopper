@@ -58,4 +58,10 @@ if minetest.get_modpath("lucky_block") then
 	})
 end
 
+-- Utility function for inventory movement logs
+function hopper.log_inventory(...)
+	minetest.log(hopper.config.inv_log_level, ...)
+end
+
+
 minetest.log("action", "[hopper] Hopper mod loaded")
