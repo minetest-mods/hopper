@@ -141,7 +141,7 @@ minetest.register_node("hopper:sorter", {
 	end,
 	
 	on_metadata_inventory_put = function(pos, listname, index, stack, player)
-		minetest.log("action", S("@1 moves stuff to sorter at @2",
+		hopper.log_inventory(("%s moves stuff to sorter at %s"):format(
 			player:get_player_name(), minetest.pos_to_string(pos)))
 
 		local timer = minetest.get_node_timer(pos)
