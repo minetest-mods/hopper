@@ -5,6 +5,10 @@ hopper = {}
 local MP = minetest.get_modpath(minetest.get_current_modname())
 local S = minetest.get_translator("hopper")
 
+hopper.translator_escaped = function(...)
+	return minetest.formspec_escape(S(...))
+end
+
 if minetest.get_modpath("default") then
 	hopper.formspec_bg = default.gui_bg .. default.gui_bg_img .. default.gui_slots
 else
