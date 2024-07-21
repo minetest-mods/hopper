@@ -9,7 +9,7 @@ minetest.register_abm({
 		if active_object_count_wider == 0 then
 			return
 		end
-		
+
 		local inv = minetest.get_meta(pos):get_inventory()
 		local posob
 
@@ -96,21 +96,21 @@ minetest.register_abm({
 			source_pos = vector.subtract(pos, destination_dir)
 			destination_pos = vector.add(pos, destination_dir)
 		end
-		
+
 		local output_direction
 		if destination_dir.y == 0 then
 			output_direction = "horizontal"
 		end
-		
+
 		local source_node = minetest.get_node(source_pos)
 		local destination_node = minetest.get_node(destination_pos)
 
-		local registered_source_inventories = hopper.get_registered_inventories_for(source_node.name)
+		local registered_source_inventories = hopper.get_registered(source_node.name)
 		if registered_source_inventories ~= nil then
 			hopper.take_item_from(pos, source_pos, source_node, registered_source_inventories["top"])
 		end
-		
-		local registered_destination_inventories = hopper.get_registered_inventories_for(destination_node.name)
+
+		local registered_destination_inventories = hopper.get_registered(destination_node.name)
 		if registered_destination_inventories ~= nil then
 			if output_direction == "horizontal" then
 				hopper.send_item_to(pos, destination_pos, destination_node, registered_destination_inventories["side"])
