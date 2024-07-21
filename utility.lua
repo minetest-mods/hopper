@@ -4,7 +4,7 @@ local FS = hopper.translator_escaped
 
 -- looks first for a registration matching the specific node name, then for a registration
 -- matching group and value, then for a registration matching a group and *any* value
-hopper.get_registered_inventories_for = function(target_node_name)
+hopper.get_registered = function(target_node_name)
 	local output = hopper.containers[target_node_name]
 	if output ~= nil then return output end
 
@@ -70,38 +70,48 @@ local get_placer = function(player_name)
 end
 
 -- Used to remove items from the target block and put it into the hopper's inventory
-hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inventory_name)
-	if target_inventory_name == nil then
-		return
-	end
+hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inv_info)
 	local target_def = minetest.registered_nodes[target_node.name]
 	if not target_def then
 		return
 	end
 
+	local target_inv_name = target_inv_info["inventory_name"]
+	local target_get_inv  = target_inv_info["get_inventory"]
+
 	--hopper inventory
-	local hopper_meta = minetest.get_meta(hopper_pos);
+	local hopper_meta = minetest.get_meta(hopper_pos)
 	local hopper_inv = hopper_meta:get_inventory()
 	local placer = get_placer(hopper_meta:get_string("placer"))
 
 	--source inventory
-	local target_inv = minetest.get_meta(target_pos):get_inventory()
-	local target_inv_size = target_inv:get_size(target_inventory_name)
-	if target_inv:is_empty(target_inventory_name) == false then
+	local target_inv
+	if target_get_inv then
+		target_inv = target_get_inv(target_pos)
+		if not target_inv then
+			minetest.log("error","No inventory from api get_inventory function: " ..
+				target_node.name .. " on " .. vector.to_string(target_pos))
+			return false
+		end
+	else
+		target_inv = minetest.get_meta(target_pos):get_inventory()
+	end
+	local target_inv_size = target_inv:get_size(target_inv_name)
+	if target_inv:is_empty(target_inv_name) == false then
 		for i = 1,target_inv_size do
-			local stack = target_inv:get_stack(target_inventory_name, i)
+			local stack = target_inv:get_stack(target_inv_name, i)
 			local item = stack:get_name()
 			if item ~= "" then
 				if hopper_inv:room_for_item("main", item) then
 					local stack_to_take = stack:take_item(1)
 					if target_def.allow_metadata_inventory_take == nil
 					  or placer == nil -- backwards compatibility, older versions of this mod didn't record who placed the hopper
-					  or target_def.allow_metadata_inventory_take(target_pos, target_inventory_name, i, stack_to_take, placer) > 0 then
-						target_inv:set_stack(target_inventory_name, i, stack)
+					  or target_def.allow_metadata_inventory_take(target_pos, target_inv_name, i, stack_to_take, placer) > 0 then
+						target_inv:set_stack(target_inv_name, i, stack)
 						--add to hopper
 						hopper_inv:add_item("main", stack_to_take)
 						if target_def.on_metadata_inventory_take ~= nil and placer ~= nil then
-							target_def.on_metadata_inventory_take(target_pos, target_inventory_name, i, stack_to_take, placer)
+							target_def.on_metadata_inventory_take(target_pos, target_inv_name, i, stack_to_take, placer)
 						end
 						break
 					end
@@ -112,7 +122,7 @@ hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inv
 end
 
 -- Used to put items from the hopper inventory into the target block
-hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inventory_name, filtered_items)
+hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inv_info, filtered_items)
 	local hopper_meta = minetest.get_meta(hopper_pos)
 	local target_def = minetest.registered_nodes[target_node.name]
 	if not target_def then
@@ -121,7 +131,7 @@ hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inven
 
 	local eject_item = hopper.config.eject_button_enabled and hopper_meta:get_string("eject") == "true" and target_def.buildable_to
 
-	if not eject_item and not target_inventory_name then
+	if not eject_item and not target_inv_info then
 		return false
 	end
 
@@ -135,23 +145,35 @@ hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inven
 	local placer = get_placer(hopper_meta:get_string("placer"))
 
 	--target inventory
-	local target_inv = minetest.get_meta(target_pos):get_inventory()
+	local target_inv_name = target_inv_info["inventory_name"]
+	local target_get_inv  = target_inv_info["get_inventory"]
+	local target_inv
+	if target_get_inv then
+		target_inv = target_get_inv(target_pos)
+		if not target_inv then
+			minetest.log("error","No inventory from api get_inventory function: " ..
+				target_node.name .. " on " .. vector.to_string(target_pos))
+			return false
+		end
+	else
+		target_inv = minetest.get_meta(target_pos):get_inventory()
+	end
 
 	for i = 1,hopper_inv_size do
 		local stack = hopper_inv:get_stack("main", i)
 		local item = stack:get_name()
 		if item ~= "" and (filtered_items == nil or filtered_items[item]) then
-			if target_inventory_name then
-				if target_inv:room_for_item(target_inventory_name, item) then
+			if target_inv_name then
+				if target_inv:room_for_item(target_inv_name, item) then
 					local stack_to_put = stack:take_item(1)
 					if target_def.allow_metadata_inventory_put == nil
 					or placer == nil -- backwards compatibility, older versions of this mod didn't record who placed the hopper
-					or target_def.allow_metadata_inventory_put(target_pos, target_inventory_name, i, stack_to_put, placer) > 0 then
+					or target_def.allow_metadata_inventory_put(target_pos, target_inv_name, i, stack_to_put, placer) > 0 then
 						hopper_inv:set_stack("main", i, stack)
 						--add to target node
-						target_inv:add_item(target_inventory_name, stack_to_put)
+						target_inv:add_item(target_inv_name, stack_to_put)
 						if target_def.on_metadata_inventory_put ~= nil and placer ~= nil then
-							target_def.on_metadata_inventory_put(target_pos, target_inventory_name, i, stack_to_put, placer)
+							target_def.on_metadata_inventory_put(target_pos, target_inv_name, i, stack_to_put, placer)
 						end
 						return true
 					end

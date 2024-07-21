@@ -41,7 +41,7 @@ minetest.register_node("hopper:chute", {
 			{-0.2, -0.2, 0.3, 0.2, 0.2, 0.7},
 		},
 	},
-	
+
 	on_construct = function(pos)
 		local inv = minetest.get_meta(pos):get_inventory()
 		inv:set_size("main", 2*2)
@@ -60,7 +60,7 @@ minetest.register_node("hopper:chute", {
 		end
 		return returned_stack
 	end,
-	
+
 	can_dig = function(pos,player)
 		local inv = minetest.get_meta(pos):get_inventory()
 		return inv:is_empty("main")
@@ -81,7 +81,7 @@ minetest.register_node("hopper:chute", {
 		local timer = minetest.get_node_timer(pos)
 		if not timer:is_started() then
 			timer:start(1)
-		end		
+		end
 	end,
 
 	on_timer = function(pos, elapsed)
@@ -95,9 +95,9 @@ minetest.register_node("hopper:chute", {
 		if dir.y == 0 then
 			output_direction = "horizontal"
 		end
-		
+
 		local destination_node = minetest.get_node(destination_pos)
-		local registered_inventories = hopper.get_registered_inventories_for(destination_node.name)
+		local registered_inventories = hopper.get_registered(destination_node.name)
 		if registered_inventories ~= nil then
 			if output_direction == "horizontal" then
 				hopper.send_item_to(pos, destination_pos, destination_node, registered_inventories["side"])
@@ -107,7 +107,7 @@ minetest.register_node("hopper:chute", {
 		else
 			hopper.send_item_to(pos, destination_pos, destination_node)
 		end
-		
+
 		if not inv:is_empty("main") then
 			minetest.get_node_timer(pos):start(1)
 		end

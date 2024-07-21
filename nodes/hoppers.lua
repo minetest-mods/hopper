@@ -29,16 +29,22 @@ local hopper_on_place = function(itemstack, placer, pointed_thing, node_name)
 		return returned_stack
 	end
 
-	local pointed_pos  = pointed_thing.under
-	local hopper_pos   = pointed_thing.above
+	local pointed_pos = pointed_thing.under
+	local hopper_pos  = pointed_thing.above
 
-	local param2_by_offset = {
-		[vector.new(-1, 0, 0):to_string()] = 0,
-		[vector.new( 0, 0, 1):to_string()] = 1,
-		[vector.new( 1, 0, 0):to_string()] = 2,
-		[vector.new( 0, 0,-1):to_string()] = 3,
-	}
-	local param2 = param2_by_offset[(pointed_pos - hopper_pos):to_string()]
+	local param2
+	local pointed_registered = hopper.get_registered(minetest.get_node(pointed_pos).name)
+	if pointed_registered and pointed_registered.extra.set_hopper_param2 then
+		param2 = pointed_registered.extra.set_hopper_param2(hopper_pos, pointed_pos)
+	else
+		local param2_by_offset = {
+			[vector.new(-1, 0, 0):to_string()] = 0,
+			[vector.new( 0, 0, 1):to_string()] = 1,
+			[vector.new( 1, 0, 0):to_string()] = 2,
+			[vector.new( 0, 0,-1):to_string()] = 3,
+		}
+		param2 = param2_by_offset[(pointed_pos - hopper_pos):to_string()]
+	end
 
 	if param2 then
 		returned_stack, success = minetest.item_place_node(ItemStack("hopper:hopper_side"), placer, pointed_thing, param2)
@@ -196,7 +202,7 @@ minetest.register_node("hopper:hopper_side", {
 			{-0.7, -0.3, -0.15, 0.15, 0.0, 0.15},
 		},
 	},
-	
+
 	on_construct = function(pos)
 		local inv = minetest.get_meta(pos):get_inventory()
 		inv:set_size("main", 4*4)
@@ -205,7 +211,7 @@ minetest.register_node("hopper:hopper_side", {
 	on_place = function(itemstack, placer, pointed_thing)
 		return hopper_on_place(itemstack, placer, pointed_thing, "hopper:hopper_side")
 	end,
-	
+
 	can_dig = function(pos,player)
 		local inv = minetest.get_meta(pos):get_inventory()
 		return inv:is_empty("main")
