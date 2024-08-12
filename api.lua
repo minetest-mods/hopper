@@ -36,46 +36,41 @@ end
 function hopper:add_container(list)
 	for _, entry in pairs(list) do
 
+		local relative_position = entry[1]
 		local target_node = entry[2]
-		local neighbor_node
 
+		local inventory_info = entry
+		inventory_info.inventory_name = entry[3]
+		table.remove(inventory_info, 1)
+		table.remove(inventory_info, 1)
+		table.remove(inventory_info, 1)
+
+		local neighbor_node
 		if string.sub(target_node, 1, 6) == "group:" then
 			local group_identifier, group_number = parse_group(target_node)
 
 			if hopper.groups[group_identifier] == nil then
 				hopper.groups[group_identifier] = {}
 			end
-			local group = hopper.groups[group_identifier][group_number]
-			if group == nil then
-				group = {}
+			if hopper.groups[group_identifier][group_number] == nil then
+				hopper.groups[group_identifier][group_number] = {}
 			end
-			if group[entry[1]] == nil then
-				group[entry[1]] = {}
+			if hopper.groups[group_identifier][group_number].extra == nil then
+				hopper.groups[group_identifier][group_number].extra = {}
 			end
-			group[entry[1]]["inventory_name"] = entry[3]
-			if entry["get_inventory"] then
-				group[entry[1]]["get_inventory"] = entry["get_inventory"]
-			end
-			hopper.groups[group_identifier][group_number] = group
+
+			hopper.groups[group_identifier][group_number][relative_position] = inventory_info
 			neighbor_node = "group:"..group_identifier
-			-- result is a table of the form:
-			-- groups[group_identifier][group_number][relative_position]{"inventory_name","get_inventory"}
 		else
-			local node_info = hopper.containers[target_node]
-			if node_info == nil then
-				node_info = {}
+			if hopper.containers[target_node] == nil then
+				hopper.containers[target_node] = {}
 			end
-			if node_info[entry[1]] == nil then
-				node_info[entry[1]] = {}
+			if hopper.containers[target_node].extra == nil then
+				hopper.containers[target_node].extra = {}
 			end
-			node_info[entry[1]]["inventory_name"] = entry[3]
-			if entry["get_inventory"] then
-				node_info[entry[1]]["get_inventory"] = entry["get_inventory"]
-			end
-			hopper.containers[target_node] = node_info
+
+			hopper.containers[target_node][relative_position] = inventory_info
 			neighbor_node = target_node
-			-- result is a table of the form:
-			-- containers[target_node_name][relative_position]{"inventory_name","get_inventory"}
 		end
 
 		if not is_already_in_neighbors(neighbor_node) then
