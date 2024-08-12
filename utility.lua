@@ -69,6 +69,22 @@ local get_placer = function(player_name)
 	return nil
 end
 
+local function get_container_inventory(node_pos, inv_info)
+	local get_inventory_fn = inv_info.get_inventory
+
+	local inventory
+	if get_inventory_fn then
+		inventory = get_inventory_fn(node_pos)
+		if not inventory then
+			minetest.log("error","No inventory from api get_inventory function: " ..
+				target_node.name .. " on " .. vector.to_string(node_pos))
+		end
+	else
+		inventory = minetest.get_meta(node_pos):get_inventory()
+	end
+	return inventory
+end
+
 -- Used to remove items from the target block and put it into the hopper's inventory
 hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inv_info)
 	local target_def = minetest.registered_nodes[target_node.name]
@@ -76,26 +92,18 @@ hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inv
 		return
 	end
 
-	local target_inv_name = target_inv_info["inventory_name"]
-	local target_get_inv  = target_inv_info["get_inventory"]
-
 	--hopper inventory
 	local hopper_meta = minetest.get_meta(hopper_pos)
 	local hopper_inv = hopper_meta:get_inventory()
 	local placer = get_placer(hopper_meta:get_string("placer"))
 
 	--source inventory
-	local target_inv
-	if target_get_inv then
-		target_inv = target_get_inv(target_pos)
-		if not target_inv then
-			minetest.log("error","No inventory from api get_inventory function: " ..
-				target_node.name .. " on " .. vector.to_string(target_pos))
-			return false
-		end
-	else
-		target_inv = minetest.get_meta(target_pos):get_inventory()
+	local target_inv_name = target_inv_info.inventory_name
+	local target_inv = get_container_inventory(target_pos, target_inv_info)
+	if not target_inv then
+		return false
 	end
+
 	local target_inv_size = target_inv:get_size(target_inv_name)
 	if target_inv:is_empty(target_inv_name) == false then
 		for i = 1,target_inv_size do
@@ -144,19 +152,11 @@ hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inv_i
 	local hopper_inv_size = hopper_inv:get_size("main")
 	local placer = get_placer(hopper_meta:get_string("placer"))
 
-	--target inventory
-	local target_inv_name = target_inv_info["inventory_name"]
-	local target_get_inv  = target_inv_info["get_inventory"]
-	local target_inv
-	if target_get_inv then
-		target_inv = target_get_inv(target_pos)
-		if not target_inv then
-			minetest.log("error","No inventory from api get_inventory function: " ..
-				target_node.name .. " on " .. vector.to_string(target_pos))
-			return false
-		end
-	else
-		target_inv = minetest.get_meta(target_pos):get_inventory()
+	--source inventory
+	local target_inv_name = target_inv_info.inventory_name
+	local target_inv = get_container_inventory(target_pos, target_inv_info)
+	if not target_inv then
+		return false
 	end
 
 	for i = 1,hopper_inv_size do
