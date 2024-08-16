@@ -4,23 +4,54 @@
 
 Based on jordan4ibanez's original hoppers mod, optimized by TenPlus1 and FaceDeer, with chutes and sorters by FaceDeer
 
-Hoppers are nodes that can transfer items to and from the inventories of adjacent nodes. The wide end of a hopper is its "input" end, if there's a chest or other compatible container it will take one item per second into its own internal inventory. It will also draw in items that have been dropped here. The narrow end of the hopper is its "output" end. It will attempt to inject items into a compatible container located at its output end. If there's no compatible container and the hopper's "eject" mode has been enabled it will instead dump the items out into the world.
+### Functionality description
 
-The location of a hopper relative to a furnace determines which inventory slots the hopper will affect. A hopper directly above a furnace will inject items into the furnace's input slot. A hopper to the furnace's side will inject items into the furnace's fuel slot. A hopper below the furnace will pull items out of the furnace's output slot. Hoppers cannot inject items into inappropriate slots; non-fuel items will not be placed into the furnace's fuel slot and non-cookable items will not be placed into the input slot.
+#### Hopper node
 
-Also included in this mod are a "chute" node and a "sorter" node. These allow for items to be routed over short distances and distributed in sophisticated ways.
+Hoppers are nodes that can transfer items to and from the inventories of adjacent nodes. The transfer direction depends on the orientation of the hopper.
 
-A chute simply moves items into adjacent nodes. You'll need to use a hopper or sorter to inject items into it to move along. A screwdriver is a useful tool for getting chutes aimed correctly.
+The wide end of a hopper is its "input" end, if there is a compatible container (e.g. a chest), one item per second is taken into its own internal inventory. The hopper will also draw in dropped items.
 
-A sorter has two different outputs. Its inventory has a "filter" grid; place items in this grid to set the sorter's filter. Items that match the filter will be sent out the output with the large arrow and other items will be sent out the output with the smaller arrow. A "filter all" option will cause the sorter to attempt to send *all* items in the direction of the large arrow and then if that fails send them in the direction of the smaller arrow. This allows you to have an "overflow" storage should the sorter's primary target fill up, or when used in combination with a selective container (like the furnace's fuel slot, for example) it allows the target inventory to do the filtering for you.
+The narrow end of the hopper is its "output" end. It can be either straight or 90° bent, relative to the input. It will attempt to inject items into a compatible container connected to it. On failure, the item is either held back in the hopper inventory or ejected, depending on its configuration.
+
+#### Chute node
+
+The "chute" node acts as a pipe for items injected by a hopper or sorter. Use a screwdriver tool to achieve the desired rotation.
+
+#### Sorter node
+
+Item stacks placed into the "filter" grid of the sorter node inventory define how to distribute the incoming items into the two outputs.
+
+ * Matching items are sent into the direction of the large arrow (`V`).
+ * Other items are sent to the 90° side output.
+
+Special case: The "filter all" option will cause the sorter to attempt to send *all* items in the direction of the large arrow. On failure, they're sent in the direction of the smaller arrow. Use-cases:
+
+ * Protection against overflowing containers
+ * Protection against unaccepted items in the destination slot(s), such as the furnace fuel slot
+
+#### Built-in mod compatibility
+
+The following nodes are supported out-of-the-box. "above"/"below"/"side" describe the location of the hopper.
+
+ * `default:furnace`
+     * Above: routed to the input slot
+     * Below: routed to the output slots
+     * Sides: routed to the fuel slot
+ * `default:chest(_locked)`, `protector:chest`
+     * All sides: routed to the main slot
+ * `wine:wine_barrel`
+     * Above: routed to the destination slots
+     * Below: routed to the source slot
+     * Sides: routed to the source slot
 
 ### Advanced settings
 
-This mod has several configurable settings found in the advanced settings menu.
+This mod has several configurable settings. See settings menu or [settingtypes.txt](settingtypes.txt) for details.
 
-* Hopper texture size: can be set to 16 pixels (matching most standard Minetest node textures) or 32 pixels
-* Single craftable item: When enabled (the default) hoppers are crafted as a single item and then select whether the output has a 90-degree turn to the side based on how you place it. When disabled you can craft straight and bent hoppers as separate items.
-* Eject items button: this can be used to remove the "eject items" button from hoppers, if it is not desired.
+* Hopper texture size: 16x16 pixels (default) or 32x32 pixels
+* Single craftable item: output is straight or rotated by 90° to the side based on how you place it (default). When disabled, straight and bent hoppers must be crafted separately.
+* Eject items button: option to remove the "eject items" button from hoppers
 
 ### Change log
 
