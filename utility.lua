@@ -1,4 +1,3 @@
-local S = minetest.get_translator("hopper")
 local FS = hopper.translator_escaped
 -- Target inventory retrieval
 
@@ -76,6 +75,7 @@ local function get_container_inventory(node_pos, inv_info)
 	if get_inventory_fn then
 		inventory = get_inventory_fn(node_pos)
 		if not inventory then
+			local target_node = minetest.get_node(node_pos)
 			minetest.log("error","No inventory from api get_inventory function: " ..
 				target_node.name .. " on " .. vector.to_string(node_pos))
 		end
@@ -131,12 +131,12 @@ end
 
 -- Used to put items from the hopper inventory into the target block
 hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inv_info, filtered_items)
-	local hopper_meta = minetest.get_meta(hopper_pos)
 	local target_def = minetest.registered_nodes[target_node.name]
 	if not target_def then
 		return false
 	end
 
+	local hopper_meta = minetest.get_meta(hopper_pos)
 	local eject_item = hopper.config.eject_button_enabled and hopper_meta:get_string("eject") == "true" and target_def.buildable_to
 
 	if not eject_item and not target_inv_info then
@@ -144,7 +144,6 @@ hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inv_i
 	end
 
 	--hopper inventory
-	local hopper_meta = minetest.get_meta(hopper_pos);
 	local hopper_inv = hopper_meta:get_inventory()
 	if hopper_inv:is_empty("main") == true then
 		return false

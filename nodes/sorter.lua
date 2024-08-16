@@ -81,10 +81,7 @@ minetest.register_node("hopper:sorter", {
 	end,
 
 	on_place = function(itemstack, placer, pointed_thing, node_name)
-		local pos  = pointed_thing.under
 		local pos2 = pointed_thing.above
-		local x = pos.x - pos2.x
-		local z = pos.z - pos2.z
 
 		local returned_stack, success = minetest.item_place_node(itemstack, placer, pointed_thing)
 		if success then
@@ -171,44 +168,28 @@ minetest.register_node("hopper:sorter", {
 		local node = minetest.get_node(pos)
 		local dir = minetest.facedir_to_dir(node.param2)
 		local default_destination_pos = vector.add(pos, dir)
-		local default_output_direction
-		if dir.y == 0 then
-			default_output_direction = "horizontal"
-		end
+		local default_output_direction = (dir.y == 0) and "side" or "bottom"
 
 		dir = bottomdir(node.param2)
 		local filter_destination_pos = vector.add(pos, dir)
-		local filter_output_direction
-		if dir.y == 0 then
-			filter_output_direction = "horizontal"
-		end
+		local filter_output_direction = (dir.y == 0) and "side" or "bottom"
 
-		local success = false
+		--- returns success? = true/false
+		local function try_send_item(output_dir, dst_pos)
+			local dst_node = minetest.get_node(dst_pos)
+			local registered_inventories = hopper.get_registered(dst_node.name)
 
-		local filter_destination_node = minetest.get_node(filter_destination_pos)
-		local registered_inventories = hopper.get_registered(filter_destination_node.name)
-		if registered_inventories ~= nil then
-			if filter_output_direction == "horizontal" then
-				success = hopper.send_item_to(pos, filter_destination_pos, filter_destination_node, registered_inventories["side"], filter_items)
-			else
-				success = hopper.send_item_to(pos, filter_destination_pos, filter_destination_node, registered_inventories["bottom"], filter_items)
-			end
-		else
-			success = hopper.send_item_to(pos, filter_destination_pos, filter_destination_node, nil, filter_items)
-		end
-
-		if not success then -- weren't able to put something in the filter destination, for whatever reason. Now we can start moving stuff forward to the default.
-			local default_destination_node = minetest.get_node(default_destination_pos)
-			local registered_inventories = hopper.get_registered(default_destination_node.name)
 			if registered_inventories ~= nil then
-				if default_output_direction == "horizontal" then
-					hopper.send_item_to(pos, default_destination_pos, default_destination_node, registered_inventories["side"])
-				else
-					hopper.send_item_to(pos, default_destination_pos, default_destination_node, registered_inventories["bottom"])
-				end
-			else
-				hopper.send_item_to(pos, default_destination_pos, default_destination_node)
+				return hopper.send_item_to(pos, dst_pos, dst_node, registered_inventories[output_dir], filter_items)
 			end
+
+			return hopper.send_item_to(pos, dst_pos, dst_node, nil, filter_items)
+		end
+
+		if not try_send_item(filter_output_direction, filter_destination_pos) then
+			-- weren't able to put something in the filter destination, for whatever reason.
+			-- Now we can start moving stuff forward to the default.
+			try_send_item(default_output_direction, default_destination_pos)
 		end
 
 		if not inv:is_empty("main") then
