@@ -5,7 +5,7 @@ minetest.register_abm({
 	nodenames = {"hopper:hopper", "hopper:hopper_side"},
 	interval = 1.0,
 	chance = 1,
-	action = function(pos, node, active_object_count, active_object_count_wider)
+	action = function(pos, _, _, active_object_count_wider)
 		if active_object_count_wider == 0 then
 			return
 		end
@@ -85,7 +85,7 @@ minetest.register_abm({
 	chance = 1,
 	catch_up = false,
 
-	action = function(pos, node, active_object_count, active_object_count_wider)
+	action = function(pos, node, _, _)
 		local source_pos, destination_pos, destination_dir
 		if node.name == "hopper:hopper_side" then
 			source_pos = vector.add(pos, directions[node.param2].src)

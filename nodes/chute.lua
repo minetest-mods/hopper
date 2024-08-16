@@ -48,10 +48,7 @@ minetest.register_node("hopper:chute", {
 	end,
 
 	on_place = function(itemstack, placer, pointed_thing, node_name)
-		local pos  = pointed_thing.under
 		local pos2 = pointed_thing.above
-		local x = pos.x - pos2.x
-		local z = pos.z - pos2.z
 
 		local returned_stack, success = minetest.item_place_node(itemstack, placer, pointed_thing)
 		if success then
