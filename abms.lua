@@ -11,26 +11,26 @@ minetest.register_abm({
 		end
 
 		local inv = minetest.get_meta(pos):get_inventory()
-		local posob
+		if not inv then
+			return
+		end
 
 		for _,object in pairs(minetest.get_objects_inside_radius(pos, 1)) do
-			if not object:is_player()
-			and object:get_luaentity()
-			and object:get_luaentity().name == "__builtin:item"
-			and inv
-			and inv:room_for_item("main",
-				ItemStack(object:get_luaentity().itemstring)) then
+			local entity = not object:is_player() and object:get_luaentity()
 
-				posob = object:getpos()
+			if entity
+			and entity.name == "__builtin:item"
+			and inv:room_for_item("main", ItemStack(entity.itemstring)) then
+
+				local posob = object:get_pos()
 
 				if math.abs(posob.x - pos.x) <= 0.5
 				and posob.y - pos.y <= 0.85
 				and posob.y - pos.y >= 0.3 then
 
-					inv:add_item("main",
-						ItemStack(object:get_luaentity().itemstring))
+					inv:add_item("main", ItemStack(entity.itemstring))
 
-					object:get_luaentity().itemstring = ""
+					entity.itemstring = ""
 					object:remove()
 				end
 			end
