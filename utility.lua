@@ -163,7 +163,7 @@ local function send_item_to_inv(hopper_inv, target_pos, filtered_items, placer, 
 		stack = hopper_inv:get_stack("main", i)
 		local item = stack:get_name()
 		if item ~= "" and (filtered_items == nil or filtered_items[item])
-		and target_inv:room_for_item(target_inv_name, item) then
+				and target_inv:room_for_item(target_inv_name, item) then
 			stack_num = i
 			break
 		end
@@ -174,7 +174,7 @@ local function send_item_to_inv(hopper_inv, target_pos, filtered_items, placer, 
 
 	local stack_to_put = stack:take_item(1)
 	if target_def.allow_metadata_inventory_put and placer -- backwards compatibility, older versions of this mod didn't record who placed the hopper
-	and target_def.allow_metadata_inventory_put(target_pos, target_inv_name, stack_num, stack_to_put, placer) < 0 then
+			and target_def.allow_metadata_inventory_put(target_pos, target_inv_name, stack_num, stack_to_put, placer) < 0 then
 		return false
 	end
 
@@ -183,6 +183,7 @@ local function send_item_to_inv(hopper_inv, target_pos, filtered_items, placer, 
 	if target_def.on_metadata_inventory_put ~= nil and placer ~= nil then
 		target_def.on_metadata_inventory_put(target_pos, target_inv_name, stack_num, stack_to_put, placer)
 	end
+	return true
 end
 
 -- Used to put items from the hopper inventory into the target block
@@ -197,14 +198,16 @@ hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inv_i
 	if hopper_inv:is_empty("main") == true then
 		return false
 	end
-	local placer = get_placer(hopper_meta:get_string("placer"))
 
 	if target_inv_info then
-		send_item_to_inv(hopper_inv, target_pos, filtered_items, placer, target_inv_info, target_def)
-	elseif hopper.config.eject_button_enabled and target_def.buildable_to
-	and minetest.get_meta(hopper_pos):get_string("eject") == "true" then
-		send_item_to_air(hopper_inv, target_pos, filtered_items)
-	else
-		return false
+		local placer = get_placer(hopper_meta:get_string("placer"))
+		return send_item_to_inv(hopper_inv, target_pos, filtered_items, placer, target_inv_info, target_def)
 	end
+
+	if hopper.config.eject_button_enabled and target_def.buildable_to
+			and hopper_meta:get_string("eject") == "true" then
+		return send_item_to_air(hopper_inv, target_pos, filtered_items)
+	end
+
+	return false
 end
