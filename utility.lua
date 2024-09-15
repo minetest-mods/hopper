@@ -129,25 +129,39 @@ hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inv
 	end
 end
 
-local function send_item_to_air(hopper_inv, target_pos, filtered_items)
+local function send_item_to_air(hopper_inv, target_pos)
+	local item
 	local stack
 	local stack_num
 	for i = 1, hopper_inv:get_size("main") do
 		stack = hopper_inv:get_stack("main", i)
-		local item = stack:get_name()
-		if item ~= "" and (filtered_items == nil or filtered_items[item]) then
+		item = stack:get_name()
+		if item ~= "" then
 			stack_num = i
 			break
 		end
 	end
-	if not stack_num then
-		return false
+
+	local eject_node = minetest.get_node(target_pos)
+	if (eject_node["name"] ~= "air") then
+		minetest.log("verbose", "hopper.send_item_to_air: eject direction not air ("..eject_node["name"].." at "..target_pos:to_string().."). Looking for alternate.")
+		local air_pos
+		local radius = 1
+		while not air_pos and radius <= 5 do
+			air_pos = minetest.find_node_near(target_pos, radius, {"air"})
+			radius = radius + 1
+		end
+		if not air_pos then
+			minetest.log("warning", "hopper.send_item_to_air: could not find an air node nearby")
+			return
+		end
+		target_pos = air_pos
 	end
 
 	local stack_to_put = stack:take_item(1)
 	minetest.add_item(target_pos, stack_to_put)
 	hopper_inv:set_stack("main", stack_num, stack)
-	return true
+	hopper.log_inventory("hopper ejecting "..item.." to "..target_pos:to_string())
 end
 
 local function send_item_to_inv(hopper_inv, target_pos, filtered_items, placer, target_inv_info, target_def)
@@ -204,10 +218,19 @@ hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inv_i
 		return send_item_to_inv(hopper_inv, target_pos, filtered_items, placer, target_inv_info, target_def)
 	end
 
-	if hopper.config.eject_button_enabled and target_def.buildable_to
-			and hopper_meta:get_string("eject") == "true" then
-		return send_item_to_air(hopper_inv, target_pos, filtered_items)
-	end
-
 	return false
+end
+
+hopper.eject_item = function(hopper_pos, target_pos)
+	if hopper.config.eject_button_enabled then
+
+		local hopper_meta = minetest.get_meta(hopper_pos)
+		if hopper_meta:get_string("eject") == "true" then
+			local hopper_inv = hopper_meta:get_inventory()
+			if hopper_inv:is_empty("main") then
+				return
+			end
+			send_item_to_air(hopper_inv, target_pos)
+		end
+	end
 end
