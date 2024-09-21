@@ -113,10 +113,10 @@ minetest.register_abm({
 		local registered_destination_inventories = hopper.get_registered(destination_node.name)
 		if registered_destination_inventories ~= nil then
 			if not hopper.send_item_to(pos, destination_pos, destination_node, registered_destination_inventories[output_direction]) then
-				hopper.eject_item(pos, destination_pos)
+				hopper.try_eject_item(pos, destination_pos)
 			end
 		else
-			hopper.eject_item(pos, destination_pos)
+			hopper.try_eject_item(pos, destination_pos)
 		end
 	end,
 })

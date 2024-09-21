@@ -183,14 +183,14 @@ minetest.register_node("hopper:sorter", {
 				return hopper.send_item_to(pos, dst_pos, dst_node, registered_inventories[output_dir], filter_items_map)
 			end
 
-			return hopper.eject_item(pos, dst_pos)
+			return false
 		end
 
 		if not try_send_item(filter_output_direction, filter_destination_pos, filter_items) then
 			-- weren't able to put something in the filter destination, for whatever reason.
 			-- Now we can start moving stuff forward to the default.
 			if not try_send_item(default_output_direction, default_destination_pos) then
-				hopper.eject_item(pos, default_destination_pos)
+				hopper.try_eject_item(pos, default_destination_pos)
 			end
 		end
 
