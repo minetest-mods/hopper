@@ -144,7 +144,8 @@ local function try_send_item_to_air(hopper_inv, target_pos)
 	local eject_node = minetest.get_node(target_pos)
 	local ndef = minetest.registered_nodes[eject_node.name]
 	if not ndef or not ndef.buildable_to then
-		minetest.log("verbose", "hopper.try_send_item_to_air: eject direction not buildable ("..eject_node.name.." at "..target_pos:to_string().."). Looking for alternate.")
+		minetest.log("verbose", "hopper.try_send_item_to_air: eject direction not buildable ("
+			..eject_node.name.." at "..target_pos:to_string().."). Looking for alternate.")
 		local air_pos = minetest.find_node_near(target_pos, 2, {"air"})
 		if not air_pos then
 			minetest.log("warning", "hopper.try_send_item_to_air: could not find an air node nearby")
@@ -156,7 +157,7 @@ local function try_send_item_to_air(hopper_inv, target_pos)
 	local stack_to_put = stack:take_item(1)
 	minetest.add_item(target_pos, stack_to_put)
 	hopper_inv:set_stack("main", stack_num, stack)
-	hopper.log_inventory("hopper ejecting "..stack:get_name().." to "..target_pos:to_string())
+	hopper.log_inventory("hopper ejecting "..stack:get_name().." as object to "..target_pos:to_string())
 	return true
 end
 
