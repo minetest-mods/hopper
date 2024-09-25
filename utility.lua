@@ -108,45 +108,56 @@ hopper.take_item_from = function(hopper_pos, target_pos, target_node, target_inv
 	if target_inv:is_empty(target_inv_name) == false then
 		for i = 1,target_inv_size do
 			local stack = target_inv:get_stack(target_inv_name, i)
-			local item = stack:get_name()
-			if item ~= "" then
-				if hopper_inv:room_for_item("main", item) then
-					local stack_to_take = stack:take_item(1)
-					if target_def.allow_metadata_inventory_take == nil
-					  or placer == nil -- backwards compatibility, older versions of this mod didn't record who placed the hopper
-					  or target_def.allow_metadata_inventory_take(target_pos, target_inv_name, i, stack_to_take, placer) > 0 then
-						target_inv:set_stack(target_inv_name, i, stack)
-						--add to hopper
-						hopper_inv:add_item("main", stack_to_take)
-						if target_def.on_metadata_inventory_take ~= nil and placer ~= nil then
-							target_def.on_metadata_inventory_take(target_pos, target_inv_name, i, stack_to_take, placer)
-						end
-						break
+
+			if not stack:is_empty() and hopper_inv:room_for_item("main", stack:get_name()) then
+				local stack_to_take = stack:take_item(1)
+
+				if target_def.allow_metadata_inventory_take == nil
+					or placer == nil -- backwards compatibility, older versions of this mod didn't record who placed the hopper
+					or target_def.allow_metadata_inventory_take(target_pos, target_inv_name, i, stack_to_take, placer) > 0 then
+
+					target_inv:set_stack(target_inv_name, i, stack)
+					--add to hopper
+					hopper_inv:add_item("main", stack_to_take)
+					if target_def.on_metadata_inventory_take ~= nil and placer ~= nil then
+						target_def.on_metadata_inventory_take(target_pos, target_inv_name, i, stack_to_take, placer)
 					end
+					break
 				end
 			end
-		end
+
+		end -- for
 	end
 end
 
-local function send_item_to_air(hopper_inv, target_pos, filtered_items)
+local function try_send_item_to_air(hopper_inv, target_pos)
 	local stack
 	local stack_num
 	for i = 1, hopper_inv:get_size("main") do
 		stack = hopper_inv:get_stack("main", i)
-		local item = stack:get_name()
-		if item ~= "" and (filtered_items == nil or filtered_items[item]) then
+		if not stack:is_empty() then
 			stack_num = i
 			break
 		end
 	end
-	if not stack_num then
-		return false
+
+	local eject_node = minetest.get_node(target_pos)
+	local ndef = minetest.registered_nodes[eject_node.name]
+	if not ndef or not ndef.buildable_to then
+		minetest.log("verbose", "hopper.try_send_item_to_air: eject direction not buildable ("
+			..eject_node.name.." at "..target_pos:to_string().."). Looking for alternate.")
+		local air_pos = minetest.find_node_near(target_pos, 2, {"air"})
+		if not air_pos then
+			minetest.log("warning", "hopper.try_send_item_to_air: could not find an air node nearby")
+			return false
+		end
+		target_pos = air_pos
 	end
 
 	local stack_to_put = stack:take_item(1)
 	minetest.add_item(target_pos, stack_to_put)
 	hopper_inv:set_stack("main", stack_num, stack)
+	hopper.log_inventory("hopper ejecting "..stack:get_name().." as object to "..target_pos:to_string())
 	return true
 end
 
@@ -204,10 +215,24 @@ hopper.send_item_to = function(hopper_pos, target_pos, target_node, target_inv_i
 		return send_item_to_inv(hopper_inv, target_pos, filtered_items, placer, target_inv_info, target_def)
 	end
 
-	if hopper.config.eject_button_enabled and target_def.buildable_to
-			and hopper_meta:get_string("eject") == "true" then
-		return send_item_to_air(hopper_inv, target_pos, filtered_items)
-	end
-
 	return false
 end
+
+hopper.try_eject_item = function(hopper_pos, target_pos)
+	if not hopper.config.eject_button_enabled then
+		return false
+	end
+
+	local hopper_meta = minetest.get_meta(hopper_pos)
+	if hopper_meta:get_string("eject") ~= "true" then
+		return false
+	end
+
+	local hopper_inv = hopper_meta:get_inventory()
+	if hopper_inv:is_empty("main") then
+		return false
+	end
+
+	return try_send_item_to_air(hopper_inv, target_pos)
+end
+

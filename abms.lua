@@ -97,9 +97,9 @@ minetest.register_abm({
 			destination_pos = vector.add(pos, destination_dir)
 		end
 
-		local output_direction
+		local output_direction = "bottom"
 		if destination_dir.y == 0 then
-			output_direction = "horizontal"
+			output_direction = "side"
 		end
 
 		local source_node = minetest.get_node(source_pos)
@@ -112,13 +112,11 @@ minetest.register_abm({
 
 		local registered_destination_inventories = hopper.get_registered(destination_node.name)
 		if registered_destination_inventories ~= nil then
-			if output_direction == "horizontal" then
-				hopper.send_item_to(pos, destination_pos, destination_node, registered_destination_inventories["side"])
-			else
-				hopper.send_item_to(pos, destination_pos, destination_node, registered_destination_inventories["bottom"])
+			if not hopper.send_item_to(pos, destination_pos, destination_node, registered_destination_inventories[output_direction]) then
+				hopper.try_eject_item(pos, destination_pos)
 			end
 		else
-			hopper.send_item_to(pos, destination_pos, destination_node) -- for handling ejection
+			hopper.try_eject_item(pos, destination_pos)
 		end
 	end,
 })
