@@ -124,24 +124,40 @@ hopper:add_container({
 	{"side", "hopper:sorter", "main"},
 })
 
-if minetest.get_modpath("default") then
+local function add_chest(nodename)
 	hopper:add_container({
-		{"top", "default:chest", "main"},
-		{"bottom", "default:chest", "main"},
-		{"side", "default:chest", "main"},
-
-		{"top", "default:furnace", "dst"},
-		{"bottom", "default:furnace", "src"},
-		{"side", "default:furnace", "fuel"},
-
-		{"top", "default:furnace_active", "dst"},
-		{"bottom", "default:furnace_active", "src"},
-		{"side", "default:furnace_active", "fuel"},
-
-		{"top", "default:chest_locked", "main"},
-		{"bottom", "default:chest_locked", "main"},
-		{"side", "default:chest_locked", "main"},
+		{"top", nodename, "main"},
+		{"bottom", nodename, "main"},
+		{"side", nodename, "main"},
 	})
+end
+
+local function add_furnace(nodename)
+	hopper:add_container({
+		{"top", nodename, "dst"},
+		{"bottom", nodename, "src"},
+		{"side", nodename, "fuel"},
+	})
+end
+
+-- Minetest Game
+if core.get_modpath("default") then
+	add_chest("default:chest")
+	add_chest("default:chest_locked")
+	add_furnace("default:furnace")
+	add_furnace("default:furnace_active")
+end
+
+-- VoxeLibre, Mineclonia
+if core.get_modpath("mcl_init") then
+	add_furnace("mcl_furnaces:furnace")
+	add_furnace("mcl_furnaces:furnace_active")
+	add_furnace("mcl_blast_furnace:blast_furnace")
+	add_furnace("mcl_blast_furnace:blast_furnace_active")
+
+	add_furnace("mcl_chests:chest_small")
+	add_furnace("mcl_chests:chest_left")
+	add_furnace("mcl_chests:chest_right")
 end
 
 -- protector redo mod support
