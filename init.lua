@@ -9,11 +9,7 @@ hopper.translator_escaped = function(...)
 	return minetest.formspec_escape(S(...))
 end
 
-if minetest.get_modpath("default") then
-	hopper.formspec_bg = default.gui_bg .. default.gui_bg_img .. default.gui_slots
-else
-	hopper.formspec_bg = "bgcolor[#080808BB;true]" .. "listcolors[#00000069;#5A5A5A;#141318;#30434C;#FFF]"
-end
+dofile(MP.."/gamecompat.lua")
 
 dofile(MP.."/config.lua")
 dofile(MP.."/api.lua")
@@ -47,14 +43,21 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 	end
 end)
 
-
+function hopper._formspec_add_player_lists(y)
+	return hopper.formspec_add_list("current_player", "main", 0.4, y, 8, 1) ..
+		hopper.formspec_add_list("current_player", "main", 0.4, y + 1.4, 8, 3, 8)
+end
 
 -- add lucky blocks
 if minetest.get_modpath("lucky_block") then
 	lucky_block:add_blocks({
 		{"dro", {"hopper:hopper"}, 3},
-		{"nod", "default:lava_source", 1},
 	})
+	if hopper.node_fire_flame then
+		lucky_block:add_blocks({
+			{"nod", hopper.node_fire_flame, 1},
+		})
+	end
 end
 
 -- Utility function for inventory movement logs
@@ -62,5 +65,11 @@ function hopper.log_inventory(...)
 	minetest.log(hopper.config.inv_log_level, ...)
 end
 
+-- Test whether the functions work
+core.register_on_mods_loaded(function()
+	hopper.formspec_add_list("player:foo", "bar", 0, 1, 8, 4)
+	hopper.formspec_add_list("player:foo", "bar", 0, 1, 8, 4, 4)
+	hopper._formspec_add_player_lists(1)
+end)
 
 minetest.log("action", "[hopper] Hopper mod loaded")

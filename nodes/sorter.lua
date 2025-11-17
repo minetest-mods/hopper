@@ -18,29 +18,30 @@ local function get_sorter_formspec(pos)
 	local spos = hopper.get_string_pos(pos)
 
 	local filter_all = minetest.get_meta(pos):get_string("filter_all") == "true"
-	local y_displace = 0
+	local y_displace = 0.4
 	local filter_texture, filter_button_tooltip, filter_body
 	if filter_all then
 		filter_body = ""
 		filter_texture = "hopper_mode_off.png"
 		filter_button_tooltip = FS("This sorter is currently set to try sending all items\nin the direction of the arrow. Click this button\nto enable an item-type-specific filter.")
 	else
-		filter_body = "label[3.7,0;"..FS("Filter").."]list[nodemeta:" .. spos .. ";filter;0,0.5;8,1;]"
+		filter_body = "label[4.8,0.35;"..FS("Filter").."]"
+			.. hopper.formspec_add_list("nodemeta:" .. spos, "filter", 0.4, 0.8, 8, 1)
 		filter_texture = "hopper_mode_on.png"
 		filter_button_tooltip = FS("This sorter is currently set to only send items listed\nin the filter list in the direction of the arrow.\nClick this button to set it to try sending all\nitems that way first.")
-		y_displace = 1.6
+		y_displace = 2.2
 	end
 
 	local formspec =
-		"size[8," .. 7 + y_displace .. "]"
+		"formspec_version[3]"
+		.. "size[10.6," .. (8.3 + y_displace) .. "]"
 		.. hopper.formspec_bg
 		.. filter_body
-		.. "list[nodemeta:" .. spos .. ";main;3,".. tostring(0.3 + y_displace) .. ";2,2;]"
-		.. ("image_button_exit[0,%g;1,1;%s;filter_all;]"):format(y_displace, filter_texture)
+		.. hopper.formspec_add_list("nodemeta:" .. spos, "main", 4.15, 0.1 + y_displace, 2, 2)
+		.. ("image_button_exit[0.4,%g;1,1;%s;filter_all;]"):format(y_displace, filter_texture)
 		.. "tooltip[filter_all;" .. filter_button_tooltip.. "]"
-		.. hopper.get_eject_button_texts(pos, 6, 0.8 + y_displace)
-		.. "list[current_player;main;0,".. tostring(2.85 + y_displace) .. ";8,1;]"
-		.. "list[current_player;main;0,".. tostring(4.08 + y_displace) .. ";8,3;8]"
+		.. hopper.get_eject_button_texts(pos, 7.3, 0.7 + y_displace)
+		.. hopper._formspec_add_player_lists(3 + y_displace)
 		.. "listring[nodemeta:" .. spos .. ";main]"
 		.. "listring[current_player;main]"
 	return formspec

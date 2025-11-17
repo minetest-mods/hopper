@@ -7,12 +7,15 @@ ignore = {
 max_line_length = 250
 
 read_globals = {
-	"default",
+	"core",
 	"ItemStack",
-	"lucky_block",
 	"minetest",
-	"screwdriver",
 	"vector",
+	-- (Soft) sependencies
+	"default",
+	"lucky_block",
+	"mcl_formspec",
+	"mcl_sounds",
 }
 
 globals = {"hopper"}

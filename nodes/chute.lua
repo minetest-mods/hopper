@@ -1,16 +1,17 @@
 local S = minetest.get_translator("hopper")
 local FS = hopper.translator_escaped
 
+
 local function get_chute_formspec(pos)
 	local spos = hopper.get_string_pos(pos)
 	local formspec =
-		"size[8,7]"
+		"formspec_version[3]"
+		.. "size[10.6,9]"
 		.. hopper.formspec_bg
-		.. "label[3,-0.1;" .. FS("Hopper Chute") .."]"
-		.. "list[nodemeta:" .. spos .. ";main;3,0.4;2,2;]"
-		.. hopper.get_eject_button_texts(pos, 6, 0.8)
-		.. "list[current_player;main;0,2.85;8,1;]"
-		.. "list[current_player;main;0,4.08;8,3;8]"
+		.. "label[4.15,0.35;" .. FS("Hopper Chute") .."]"
+		.. hopper.formspec_add_list("nodemeta:" .. spos, "main", 4.15, 0.8, 2, 2)
+		.. hopper.get_eject_button_texts(pos, 7.3, 1.4)
+		.. hopper._formspec_add_player_lists(3.7)
 		.. "listring[nodemeta:" .. spos .. ";main]"
 		.. "listring[current_player;main]"
 	return formspec

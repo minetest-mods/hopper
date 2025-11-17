@@ -2,17 +2,16 @@ local S = minetest.get_translator("hopper")
 local FS = hopper.translator_escaped
 local ALPHA_CLIP = minetest.features.use_texture_alpha_string_modes and "clip" or true
 
--- formspec
 local function get_hopper_formspec(pos)
 	local spos = hopper.get_string_pos(pos)
 	local formspec =
-		"size[8,9]"
+		"formspec_version[3]"
+		.. "size[10.6,11.3]"
 		.. hopper.formspec_bg
-		.. "label[3.5,-0.1;" .. FS("Hopper") .."]"
-		.. "list[nodemeta:" .. spos .. ";main;2,0.4;4,4;]"
-		.. hopper.get_eject_button_texts(pos, 6.5, 2)
-		.. "list[current_player;main;0,4.85;8,1;]"
-		.. "list[current_player;main;0,6.08;8,3;8]"
+		.. "label[4.6,0.35;" .. FS("Hopper") .."]"
+		.. hopper.formspec_add_list("nodemeta:" .. spos, "main", 2.9, 0.8, 4, 4)
+		.. hopper.get_eject_button_texts(pos, 8.5, 2.6)
+		.. hopper._formspec_add_player_lists(6)
 		.. "listring[nodemeta:" .. spos .. ";main]"
 		.. "listring[current_player;main]"
 	return formspec
